@@ -14,7 +14,9 @@ func init() {
 		fmt.Println("database connection error", err)
 		os.Exit(1)
 	}
-	// // seeder
+	// ==============================
+	// [SEEDER] create test data
+	// ==============================
 	// for i := 0; i < 10; i++ {
 	// 	if err := db.CreateTestData(db.DB); err != nil {
 	// 		fmt.Println("error creating test data", err)
