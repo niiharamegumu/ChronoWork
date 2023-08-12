@@ -8,6 +8,7 @@ import (
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
 	"github.com/niiharamegumu/ChronoWork/pkg"
+	"github.com/niiharamegumu/ChronoWork/service"
 	"github.com/rivo/tview"
 	"gorm.io/gorm"
 )
@@ -20,10 +21,12 @@ var (
 		"Project",
 		"Tags",
 	}
+	notSelectText = "Not Select"
 )
 
 type Work struct {
 	Table *tview.Table
+	Form  *tview.Form
 }
 
 func NewWork() *Work {
@@ -33,6 +36,9 @@ func NewWork() *Work {
 			SetSelectable(true, false).
 			SetFixed(1, 1).
 			SetBordersColor(tview.Styles.BorderColor),
+		Form: tview.NewForm().
+			SetButtonBackgroundColor(tcell.ColorPurple).
+			SetLabelColor(tcell.ColorPurple),
 	}
 	for i, header := range workHeader {
 		work.Table.
@@ -51,11 +57,53 @@ func NewWork() *Work {
 func (w *Work) goToTop() {
 	w.Table.ScrollToBeginning().Select(1, 0)
 }
+
 func (w *Work) goToBottom() {
 	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
-func GenerateInitWork(startTime, endTime time.Time) *Work {
+func (w *Work) tableCapture(tui *service.TUI) {
+	w.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case 't':
+				w.goToTop()
+			case 'b':
+				w.goToBottom()
+			case 'a':
+				tui.SetFocus("mainForm")
+			}
+		}
+		return event
+	})
+}
+
+func (w *Work) formCapture(tui *service.TUI) {
+	w.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyEscape:
+			w.resetForm()
+			tui.SetFocus("mainContent")
+		}
+		return event
+	})
+}
+
+func (w *Work) resetForm() {
+	w.Form.
+		GetFormItemByLabel("Title").(*tview.InputField).
+		SetText("")
+	w.Form.
+		GetFormItemByLabel("Project").(*tview.DropDown).
+		SetCurrentOption(0)
+	w.Form.
+		GetFormItemByLabel("Tags").(*tview.DropDown).
+		SetOptions([]string{notSelectText}, nil).
+		SetCurrentOption(0)
+}
+
+func GenerateInitWork(startTime, endTime time.Time, tui *service.TUI) *Work {
 	work := NewWork()
 	var chronoWorks []models.ChronoWork
 	var result *gorm.DB
@@ -63,7 +111,8 @@ func GenerateInitWork(startTime, endTime time.Time) *Work {
 	result = db.DB.
 		Preload("ProjectType").
 		Preload("ProjectType.Tags").
-		Order("created_at desc").
+		Order("updated_at desc").
+		Order("id desc").
 		Find(
 			&chronoWorks,
 			"created_at >= ? AND created_at <= ?",
@@ -106,19 +155,34 @@ func GenerateInitWork(startTime, endTime time.Time) *Work {
 				SetAlign(tview.AlignCenter).
 				SetExpansion(1))
 	}
+	work.tableCapture(tui)
 
-	work.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyRune:
-			switch event.Rune() {
-			case 't':
-				work.goToTop()
-			case 'b':
-				work.goToBottom()
+	tagsOptions := append([]string{notSelectText})
+	work.Form.
+		AddInputField("Title", "", 50, nil, nil).
+		AddDropDown("Project", append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...), 0, func(option string, optionIndex int) {
+			if work.Form.GetFormItemByLabel("Tags") == nil {
+				return
 			}
-		}
-		return event
-	})
+			var projectType models.ProjectType
+			result = db.DB.Preload("Tags").Where("name = ?", option).Find(&projectType)
+			if result.Error != nil {
+				tagsOptions = []string{notSelectText}
+			} else {
+				tagsOptions = append([]string{notSelectText}, projectType.GetTagNames()...)
+			}
+			work.Form.
+				GetFormItemByLabel("Tags").(*tview.DropDown).
+				SetOptions(tagsOptions, nil).
+				SetCurrentOption(0)
+		}).
+		AddDropDown("Tags", tagsOptions, 0, nil).
+		AddButton("Save", nil).
+		AddButton("Cancel", func() {
+			work.resetForm()
+			tui.SetFocus("mainContent")
+		})
+	work.formCapture(tui)
 
 	return work
 }

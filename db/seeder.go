@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/niiharamegumu/ChronoWork/models"
@@ -8,26 +9,35 @@ import (
 )
 
 func CreateTestData(db *gorm.DB) error {
+	tags := []models.Tag{
+		{Name: "Tag 1"},
+		{Name: "Tag 2"},
+	}
+	if err := db.Create(&tags).Error; err != nil {
+		return err
+	}
+
 	projectType := models.ProjectType{
 		Name: "Sample Project",
-		Tags: []models.Tag{
-			{Name: "Tag 1"},
-			{Name: "Tag 2"},
-		},
+		Tags: tags,
 	}
 	if err := db.Create(&projectType).Error; err != nil {
 		return err
 	}
 
-	chronoWork := models.ChronoWork{
-		Title:         "Sample Task",
-		ProjectTypeID: projectType.ID,
-		StartTime:     time.Now(),
-		EndTime:       time.Now().Add(time.Hour),
-		TotalSeconds:  6239,
-		IsTracking:    false,
+	var chronoWorks []models.ChronoWork
+	for i := 0; i < 10; i++ {
+		chronoWork := models.ChronoWork{
+			Title:         fmt.Sprintf("Sample Work %d", i+1),
+			ProjectTypeID: projectType.ID,
+			StartTime:     time.Now(),
+			EndTime:       time.Now().Add(time.Hour),
+			TotalSeconds:  6239,
+			IsTracking:    false,
+		}
+		chronoWorks = append(chronoWorks, chronoWork)
 	}
-	if err := db.Create(&chronoWork).Error; err != nil {
+	if err := db.Create(&chronoWorks).Error; err != nil {
 		return err
 	}
 
