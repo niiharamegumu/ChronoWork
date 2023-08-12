@@ -17,11 +17,8 @@ func init() {
 	// ==============================
 	// [SEEDER] create test data
 	// ==============================
-	// for i := 0; i < 10; i++ {
-	// 	if err := db.CreateTestData(db.DB); err != nil {
-	// 		fmt.Println("error creating test data", err)
-	// 		continue
-	// 	}
+	// if err := db.CreateTestData(db.DB); err != nil {
+	// 	fmt.Println("error creating test data", err)
 	// }
 }
 
