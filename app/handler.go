@@ -28,8 +28,8 @@ func InitialSetting() error {
 
 	tui.SetHeader(header, false)
 	tui.SetTimer(timer, false)
-	tui.SetMenu(menu.List, true)
-	tui.SetMain(mainTitle, work.Table, false)
+	tui.SetMenu(menu.List, false)
+	tui.SetMain(mainTitle, work.Table, true) // default focus
 
 	tui.GlobalKeyActions()
 	if err := tui.App.SetRoot(tui.Grid, true).EnableMouse(true).Run(); err != nil {

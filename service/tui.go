@@ -50,8 +50,11 @@ func NewTUI() *TUI {
 func (t *TUI) GlobalKeyActions() {
 	t.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
-		case tcell.KeyEsc:
-			t.SetFocus("menu")
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case 'm':
+				t.SetFocus("menu")
+			}
 		}
 		return event
 	})
