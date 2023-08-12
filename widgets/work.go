@@ -15,8 +15,8 @@ import (
 var (
 	workHeader = []string{
 		"ID",
-		"Title",
 		"TotalTime",
+		"Title",
 		"Project",
 		"Tags",
 	}
@@ -30,20 +30,29 @@ func NewWork() *Work {
 	work := &Work{
 		Table: tview.NewTable().
 			SetBorders(true).
+			SetSelectable(true, false).
+			SetFixed(1, 1).
 			SetBordersColor(tview.Styles.BorderColor),
 	}
 	for i, header := range workHeader {
-		work.Table.SetCell(0, i,
-			tview.
-				NewTableCell(header).
-				SetAlign(tview.AlignCenter).
-				SetTextColor(tcell.ColorPurple).
-				SetExpansion(1).
-				SetSelectable(true),
-		).
-			SetSelectable(true, false)
+		work.Table.
+			SetCell(0, i,
+				tview.
+					NewTableCell(header).
+					SetAlign(tview.AlignCenter).
+					SetTextColor(tcell.ColorPurple).
+					SetSelectable(false).
+					SetExpansion(1),
+			)
 	}
 	return work
+}
+
+func (w *Work) goToTop() {
+	w.Table.ScrollToBeginning().Select(1, 0)
+}
+func (w *Work) goToBottom() {
+	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
 func GenerateInitWork(startTime, endTime time.Time) *Work {
@@ -54,6 +63,7 @@ func GenerateInitWork(startTime, endTime time.Time) *Work {
 	result = db.DB.
 		Preload("ProjectType").
 		Preload("ProjectType.Tags").
+		Order("created_at desc").
 		Find(
 			&chronoWorks,
 			"created_at >= ? AND created_at <= ?",
@@ -71,16 +81,16 @@ func GenerateInitWork(startTime, endTime time.Time) *Work {
 				NewTableCell(fmt.Sprintf("%d", chronoWork.ID)).
 				SetAlign(tview.AlignCenter).
 				SetExpansion(1))
-		// Title
+		// TotalTime
 		work.Table.SetCell(i+1, 1,
 			tview.
-				NewTableCell(chronoWork.Title).
+				NewTableCell(pkg.FormatTime(chronoWork.TotalSeconds)).
 				SetAlign(tview.AlignCenter).
 				SetExpansion(1))
-		// TotalTime
+		// Title
 		work.Table.SetCell(i+1, 2,
 			tview.
-				NewTableCell(pkg.FormatTime(chronoWork.TotalSeconds)).
+				NewTableCell(chronoWork.Title).
 				SetAlign(tview.AlignCenter).
 				SetExpansion(1))
 		// Project
@@ -96,6 +106,19 @@ func GenerateInitWork(startTime, endTime time.Time) *Work {
 				SetAlign(tview.AlignCenter).
 				SetExpansion(1))
 	}
+
+	work.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case 't':
+				work.goToTop()
+			case 'b':
+				work.goToBottom()
+			}
+		}
+		return event
+	})
 
 	return work
 }
