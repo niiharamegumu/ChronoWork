@@ -20,11 +20,10 @@ func (m *Menu) AddListItem(text string, shortcut rune, selected func()) *Menu {
 	return m
 }
 
-func GenerateInitMenu(tui *service.TUI) *Menu {
-	menu := NewMenu()
-	menu.AddListItem("Works", 'w', func() {
+func (m *Menu) GenerateInitMenu(tui *service.TUI) *Menu {
+	m.AddListItem("Works", 'w', func() {
 		tui.SetFocus("mainContent")
 	})
-	menu.AddListItem("Quit", 'q', tui.Quit)
-	return menu
+	m.AddListItem("Quit", 'q', tui.Quit)
+	return m
 }

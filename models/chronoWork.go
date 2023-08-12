@@ -26,3 +26,22 @@ func (c *ChronoWork) GetCombinedTagNames() string {
 	}
 	return strings.Join(tagNames, " | ")
 }
+
+func (c *ChronoWork) FindInRangeByTime(db *gorm.DB, startTime, endTime time.Time) ([]ChronoWork, error) {
+	var chronoWorks []ChronoWork
+	result := db.
+		Preload("ProjectType").
+		Preload("ProjectType.Tags").
+		Order("updated_at desc").
+		Order("id desc").
+		Find(
+			&chronoWorks,
+			"created_at >= ? AND created_at <= ?",
+			startTime,
+			endTime,
+		)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return chronoWorks, nil
+}
