@@ -5,22 +5,26 @@ import (
 	"os"
 
 	"github.com/niiharamegumu/ChronoWork/db"
-	"gorm.io/gorm"
 )
-
-var dbConn *gorm.DB
 
 func init() {
 	var err error
-	dbConn, err = db.ConnectDB()
+	err = db.ConnectDB()
 	if err != nil {
 		fmt.Println("database connection error", err)
 		os.Exit(1)
 	}
+	// // seeder
+	// for i := 0; i < 10; i++ {
+	// 	if err := db.CreateTestData(db.DB); err != nil {
+	// 		fmt.Println("error creating test data", err)
+	// 		continue
+	// 	}
+	// }
 }
 
 func Execute() {
-	if err := InitShow(); err != nil {
+	if err := InitialSetting(); err != nil {
 		fmt.Println("error", err)
 		os.Exit(1)
 	}

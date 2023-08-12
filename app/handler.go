@@ -2,35 +2,37 @@ package app
 
 import (
 	"fmt"
-	"os"
 	"time"
 
-	"github.com/joho/godotenv"
-	"github.com/niiharamegumu/ChronoWork/views/layouts"
-	"github.com/niiharamegumu/ChronoWork/views/widgets"
+	"github.com/gdamore/tcell/v2"
+	"github.com/niiharamegumu/ChronoWork/pkg"
+	"github.com/niiharamegumu/ChronoWork/service"
+	"github.com/niiharamegumu/ChronoWork/widgets"
 	"github.com/rivo/tview"
 )
 
-var appName string
-var app *tview.Application
+var (
+	headerText = fmt.Sprintf("%s - %s", " ChronoWork ", time.Now().Format("2006-01-02"))
+	tui        = service.NewTUI()
+)
 
-func init() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		fmt.Printf("error loading .env file: %v", err)
-	}
-	appName = os.Getenv("APP_NAME")
-	app = tview.NewApplication()
-}
+func InitialSetting() error {
+	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(headerText)
+	timer := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Timer")
+	menu := widgets.GenerateInitMenu(tui)
 
-func InitShow() error {
-	headerText := fmt.Sprintf("%s - %s", appName, time.Now().Format("2006-01-02"))
-	header := widgets.SimpleText(headerText)
+	mainTitle := tview.NewTextView().
+		SetTextAlign(tview.AlignCenter).
+		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
+	work := widgets.GenerateInitWork(pkg.TodayStartTime(), pkg.TodayEndTime())
 
-	flexRow := layouts.FlexRow()
-	flexRow.AddItem(header, 3, 1, false)
+	tui.SetHeader(header, false)
+	tui.SetTimer(timer, false)
+	tui.SetMenu(menu.List, true)
+	tui.SetMain(mainTitle, work.Table, false)
 
-	if err := app.SetRoot(flexRow, true).Run(); err != nil {
+	tui.GlobalKeyActions()
+	if err := tui.App.SetRoot(tui.Grid, true).EnableMouse(true).Run(); err != nil {
 		return err
 	}
 	return nil
