@@ -13,16 +13,16 @@ var (
 	err error
 )
 
-func ConnectDB() (*gorm.DB, error) {
+func ConnectDB() error {
 	if DB != nil {
-		return DB, nil
+		return nil
 	}
 
 	// TODO: Retrieve the database path from an environment variable
 	dbPath := fmt.Sprintf("%s/%s", "./", "sqlite.db")
 	DB, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// auto migration for models
@@ -32,5 +32,5 @@ func ConnectDB() (*gorm.DB, error) {
 		&models.Tag{},
 	)
 
-	return DB, nil
+	return nil
 }

@@ -21,10 +21,11 @@ func CreateTestData(db *gorm.DB) error {
 
 	chronoWork := models.ChronoWork{
 		Title:         "Sample Task",
-		Description:   "Sample Description",
 		ProjectTypeID: projectType.ID,
 		StartTime:     time.Now(),
 		EndTime:       time.Now().Add(time.Hour),
+		TotalSeconds:  6239,
+		IsTracking:    false,
 	}
 	if err := db.Create(&chronoWork).Error; err != nil {
 		return err
