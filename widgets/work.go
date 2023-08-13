@@ -10,7 +10,6 @@ import (
 	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
 	"github.com/rivo/tview"
-	"gorm.io/gorm"
 )
 
 var (
@@ -52,6 +51,27 @@ func NewWork() *Work {
 			)
 	}
 	return work
+}
+
+func (w *Work) GenerateInitWork(startTime, endTime time.Time, tui *service.TUI) *Work {
+	var chronoWork models.ChronoWork
+	var chronoWorks []models.ChronoWork
+	var err error
+
+	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, startTime, endTime)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	for i, chronoWork := range chronoWorks {
+		w.configureTable(i, chronoWork)
+	}
+	w.tableCapture(tui)
+
+	w.configureForm(tui)
+	w.formCapture(tui)
+
+	return w
 }
 
 func (w *Work) goToTop() {
@@ -103,78 +123,65 @@ func (w *Work) resetForm() {
 		SetCurrentOption(0)
 }
 
-func (w *Work) GenerateInitWork(startTime, endTime time.Time, tui *service.TUI) *Work {
-	var chronoWork models.ChronoWork
-	var chronoWorks []models.ChronoWork
-	var result *gorm.DB
-	var err error
+func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
+	// ID
+	w.Table.SetCell(row+1, 0,
+		tview.
+			NewTableCell(fmt.Sprintf("%d", chronoWork.ID)).
+			SetAlign(tview.AlignCenter).
+			SetExpansion(1))
+	// TotalTime
+	w.Table.SetCell(row+1, 1,
+		tview.
+			NewTableCell(pkg.FormatTime(chronoWork.TotalSeconds)).
+			SetAlign(tview.AlignCenter).
+			SetExpansion(1))
+	// Title
+	w.Table.SetCell(row+1, 2,
+		tview.
+			NewTableCell(chronoWork.Title).
+			SetAlign(tview.AlignCenter).
+			SetExpansion(1))
+	// Project
+	w.Table.SetCell(row+1, 3,
+		tview.
+			NewTableCell(chronoWork.ProjectType.Name).
+			SetAlign(tview.AlignCenter).
+			SetExpansion(1))
+	// Tags
+	w.Table.SetCell(row+1, 4,
+		tview.
+			NewTableCell(chronoWork.GetCombinedTagNames()).
+			SetAlign(tview.AlignCenter).
+			SetExpansion(1))
+}
 
-	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, startTime, endTime)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-
-	for i, chronoWork := range chronoWorks {
-		// ID
-		w.Table.SetCell(i+1, 0,
-			tview.
-				NewTableCell(fmt.Sprintf("%d", chronoWork.ID)).
-				SetAlign(tview.AlignCenter).
-				SetExpansion(1))
-		// TotalTime
-		w.Table.SetCell(i+1, 1,
-			tview.
-				NewTableCell(pkg.FormatTime(chronoWork.TotalSeconds)).
-				SetAlign(tview.AlignCenter).
-				SetExpansion(1))
-		// Title
-		w.Table.SetCell(i+1, 2,
-			tview.
-				NewTableCell(chronoWork.Title).
-				SetAlign(tview.AlignCenter).
-				SetExpansion(1))
-		// Project
-		w.Table.SetCell(i+1, 3,
-			tview.
-				NewTableCell(chronoWork.ProjectType.Name).
-				SetAlign(tview.AlignCenter).
-				SetExpansion(1))
-		// Tags
-		w.Table.SetCell(i+1, 4,
-			tview.
-				NewTableCell(chronoWork.GetCombinedTagNames()).
-				SetAlign(tview.AlignCenter).
-				SetExpansion(1))
-	}
-	w.tableCapture(tui)
-
+func (w *Work) configureForm(tui *service.TUI) {
 	tagsOptions := append([]string{notSelectText})
 	w.Form.
 		AddInputField("Title", "", 50, nil, nil).
-		AddDropDown("Project", append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...), 0, func(option string, optionIndex int) {
-			if w.Form.GetFormItemByLabel("Tags") == nil {
-				return
-			}
-			var projectType models.ProjectType
-			result = db.DB.Preload("Tags").Where("name = ?", option).Find(&projectType)
-			if result.Error != nil {
-				tagsOptions = []string{notSelectText}
-			} else {
-				tagsOptions = append([]string{notSelectText}, projectType.GetTagNames()...)
-			}
-			w.Form.
-				GetFormItemByLabel("Tags").(*tview.DropDown).
-				SetOptions(tagsOptions, nil).
-				SetCurrentOption(0)
-		}).
+		AddDropDown("Project", append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...), 0, w.projectDropDownChanged).
 		AddDropDown("Tags", tagsOptions, 0, nil).
 		AddButton("Save", nil).
 		AddButton("Cancel", func() {
 			w.resetForm()
 			tui.SetFocus("mainContent")
 		})
-	w.formCapture(tui)
+}
 
-	return w
+func (w *Work) projectDropDownChanged(option string, optionIndex int) {
+	var tagsOptions []string
+	if w.Form.GetFormItemByLabel("Tags") == nil {
+		return
+	}
+	var projectType models.ProjectType
+	result := db.DB.Preload("Tags").Where("name = ?", option).Find(&projectType)
+	if result.Error != nil {
+		tagsOptions = []string{notSelectText}
+	} else {
+		tagsOptions = append([]string{notSelectText}, projectType.GetTagNames()...)
+	}
+	w.Form.GetFormItemByLabel("Tags").(*tview.DropDown).
+		SetOptions(tagsOptions, nil).
+		SetCurrentOption(0)
 }
