@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -53,25 +54,22 @@ func NewWork() *Work {
 	return work
 }
 
-func (w *Work) GenerateInitWork(startTime, endTime time.Time, tui *service.TUI) *Work {
+func (w *Work) GenerateInitWork(startTime, endTime time.Time, tui *service.TUI) (*Work, error) {
 	var chronoWork models.ChronoWork
 	var chronoWorks []models.ChronoWork
 	var err error
 
 	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, startTime, endTime)
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		log.Println(err)
+		return nil, err
 	}
 	for i, chronoWork := range chronoWorks {
 		w.configureTable(i, chronoWork)
 	}
-	w.tableCapture(tui)
-
 	w.configureForm(tui)
-	w.formCapture(tui)
 
-	return w
+	return w, nil
 }
 
 func (w *Work) goToTop() {
@@ -82,7 +80,7 @@ func (w *Work) goToBottom() {
 	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
-func (w *Work) tableCapture(tui *service.TUI) {
+func (w *Work) TableCapture(tui *service.TUI) {
 	w.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyRune:
@@ -99,7 +97,7 @@ func (w *Work) tableCapture(tui *service.TUI) {
 	})
 }
 
-func (w *Work) formCapture(tui *service.TUI) {
+func (w *Work) FormCapture(tui *service.TUI) {
 	w.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEscape:

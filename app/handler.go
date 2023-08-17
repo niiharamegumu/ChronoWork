@@ -17,24 +17,32 @@ var (
 )
 
 func InitialSetting() error {
+	var err error
+
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(headerText)
-	timer := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Timer")
 
 	menu := widgets.NewMenu()
-	menuW := menu.GenerateInitMenu(tui)
+	menu = menu.GenerateInitMenu(tui)
 
 	mainTitle := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
 		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
+	timer := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Timer")
 	work := widgets.NewWork()
-	workW := work.GenerateInitWork(pkg.TodayStartTime(), pkg.TodayEndTime(), tui)
+	work, err = work.GenerateInitWork(pkg.TodayStartTime(), pkg.TodayEndTime(), tui)
+	if err != nil {
+		return err
+	}
 
 	tui.SetHeader(header, false)
-	tui.SetMenu(menuW.List, false)
-	tui.SetMain(mainTitle, workW.Form, timer, workW.Table, true) // default focus
+	tui.SetMenu(menu.List, false)
+	tui.SetMain(mainTitle, work.Form, timer, work.Table, true) // default focus
+
+	work.TableCapture(tui)
+	work.FormCapture(tui)
 
 	tui.GlobalKeyActions()
-	if err := tui.App.SetRoot(tui.Grid, true).EnableMouse(true).Run(); err != nil {
+	if err = tui.App.SetRoot(tui.Grid, true).EnableMouse(true).Run(); err != nil {
 		return err
 	}
 	return nil
