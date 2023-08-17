@@ -2,29 +2,38 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/niiharamegumu/ChronoWork/db"
 )
 
 func init() {
-	var err error
-	err = db.ConnectDB()
+	err := db.ConnectDB()
 	if err != nil {
 		fmt.Println("database connection error", err)
 		os.Exit(1)
 	}
+	log.Println("database connection success")
+
 	// ==============================
 	// [SEEDER] create test data
 	// ==============================
 	// if err := db.CreateTestData(db.DB); err != nil {
-	// 	fmt.Println("error creating test data", err)
+	// 	log.Println("error creating test data", err)
 	// }
 }
 
 func Execute() {
+	defer func() {
+		if err := db.CloseDB(); err != nil {
+			log.Println("error closing database", err)
+		}
+		log.Println("database connection closed")
+	}()
+
 	if err := InitialSetting(); err != nil {
-		fmt.Println("error", err)
+		log.Println("error", err)
 		os.Exit(1)
 	}
 }
