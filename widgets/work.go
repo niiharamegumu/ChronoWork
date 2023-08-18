@@ -3,7 +3,6 @@ package widgets
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
@@ -54,12 +53,12 @@ func NewWork() *Work {
 	return work
 }
 
-func (w *Work) GenerateInitWork(startTime, endTime time.Time, tui *service.TUI) (*Work, error) {
+func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
 	var chronoWork models.ChronoWork
 	var chronoWorks []models.ChronoWork
 	var err error
 
-	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, startTime, endTime)
+	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, pkg.TodayStartTime(), pkg.TodayEndTime())
 	if err != nil {
 		log.Println(err)
 		return nil, err

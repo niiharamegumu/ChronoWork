@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
 	"github.com/niiharamegumu/ChronoWork/widgets"
 	"github.com/rivo/tview"
@@ -29,7 +28,7 @@ func InitialSetting() error {
 		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
 	timer := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Timer")
 	work := widgets.NewWork()
-	work, err = work.GenerateInitWork(pkg.TodayStartTime(), pkg.TodayEndTime(), tui)
+	work, err = work.GenerateInitWork(tui)
 	if err != nil {
 		return err
 	}
