@@ -99,7 +99,7 @@ func (w *Work) TableCapture(tui *service.TUI) {
 func (w *Work) FormCapture(tui *service.TUI) {
 	w.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
-		case tcell.KeyEscape:
+		case tcell.KeyCtrlB:
 			w.resetForm()
 			tui.SetFocus("mainContent")
 		}
