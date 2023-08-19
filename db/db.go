@@ -19,7 +19,7 @@ func ConnectDB() error {
 	}
 
 	// TODO: Retrieve the database path from an environment variable
-	dbPath := fmt.Sprintf("%s/%s", "./", "sqlite.db")
+	dbPath := fmt.Sprintf("%s/%s", ".", "sqlite.db")
 	DB, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
 	if err != nil {
 		return err

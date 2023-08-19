@@ -27,3 +27,14 @@ func (p *ProjectType) GetTagNames() []string {
 	}
 	return tagNames
 }
+
+func FindProjectTypeByName(db *gorm.DB, name string) (*ProjectType, error) {
+	var projectType ProjectType
+	result := db.
+		Preload("Tags").
+		Where("name = ?", name).Find(&projectType)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &projectType, nil
+}

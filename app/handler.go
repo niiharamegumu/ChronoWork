@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
 	"github.com/niiharamegumu/ChronoWork/widgets"
 	"github.com/rivo/tview"
@@ -29,17 +28,19 @@ func InitialSetting() error {
 		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
 	timer := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Timer")
 	work := widgets.NewWork()
-	work, err = work.GenerateInitWork(pkg.TodayStartTime(), pkg.TodayEndTime(), tui)
+	work, err = work.GenerateInitWork(tui)
 	if err != nil {
 		return err
 	}
+	form := widgets.NewForm()
+	form = form.GenerateInitForm(tui)
 
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)
-	tui.SetMain(mainTitle, work.Form, timer, work.Table, true) // default focus
+	tui.SetMain(mainTitle, form.Form, timer, work.Table, true) // default focus
 
-	work.TableCapture(tui)
-	work.FormCapture(tui)
+	work.TableCapture(tui, form)
+	form.FormCapture(tui)
 
 	tui.GlobalKeyActions()
 	if err = tui.App.SetRoot(tui.Grid, true).EnableMouse(true).Run(); err != nil {
