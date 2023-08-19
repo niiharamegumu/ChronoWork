@@ -86,6 +86,10 @@ func (f *Form) store() error {
 	_, projectVal := f.Form.GetFormItemByLabel("Project").(*tview.DropDown).GetCurrentOption()
 	_, tagVal := f.Form.GetFormItemByLabel("Tags").(*tview.DropDown).GetCurrentOption()
 
+	if title == "" {
+		return nil
+	}
+
 	var projectTypeID uint
 	var tagID uint
 	if projectVal != notSelectText {
