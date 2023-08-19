@@ -34,43 +34,15 @@ func NewWork() *Work {
 			SetFixed(1, 1).
 			SetBordersColor(tview.Styles.BorderColor),
 	}
-	for i, header := range workHeader {
-		work.Table.
-			SetCell(0, i,
-				tview.
-					NewTableCell(header).
-					SetAlign(tview.AlignCenter).
-					SetTextColor(tcell.ColorPurple).
-					SetSelectable(false).
-					SetExpansion(1),
-			)
-	}
 	return work
 }
 
 func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
-	var chronoWork models.ChronoWork
-	var chronoWorks []models.ChronoWork
-	var err error
-
-	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, pkg.TodayStartTime(), pkg.TodayEndTime())
-	if err != nil {
-		log.Println(err)
+	w.setHeader()
+	if err := w.setBody(); err != nil {
 		return nil, err
 	}
-	for i, chronoWork := range chronoWorks {
-		w.configureTable(i, chronoWork)
-	}
-
 	return w, nil
-}
-
-func (w *Work) goToTop() {
-	w.Table.ScrollToBeginning().Select(1, 0)
-}
-
-func (w *Work) goToBottom() {
-	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
 func (w *Work) TableCapture(tui *service.TUI, form *Form) {
@@ -83,12 +55,60 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form) {
 			case 'b':
 				w.goToBottom()
 			case 'a':
-				form.ResetForm()
+				form.Form.Clear(true)
+				form.ConfigureForm(tui, w)
 				tui.SetFocus("mainForm")
 			}
 		}
 		return event
 	})
+}
+
+func (w *Work) ReStoreTable() error {
+	w.Table.Clear()
+	w.setHeader()
+	if err := w.setBody(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w *Work) setHeader() {
+	for i, header := range workHeader {
+		w.Table.
+			SetCell(0, i,
+				tview.
+					NewTableCell(header).
+					SetAlign(tview.AlignCenter).
+					SetTextColor(tcell.ColorPurple).
+					SetSelectable(false).
+					SetExpansion(1),
+			)
+	}
+}
+
+func (w *Work) setBody() error {
+	var chronoWork models.ChronoWork
+	var chronoWorks []models.ChronoWork
+	var err error
+
+	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, pkg.TodayStartTime(), pkg.TodayEndTime())
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	for i, chronoWork := range chronoWorks {
+		w.configureTable(i, chronoWork)
+	}
+	return nil
+}
+
+func (w *Work) goToTop() {
+	w.Table.ScrollToBeginning().Select(1, 0)
+}
+
+func (w *Work) goToBottom() {
+	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
 func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {

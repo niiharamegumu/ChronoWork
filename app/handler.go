@@ -33,7 +33,7 @@ func InitialSetting() error {
 		return err
 	}
 	form := widgets.NewForm()
-	form = form.GenerateInitForm(tui)
+	form = form.GenerateInitForm(tui, work)
 
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)
