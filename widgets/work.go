@@ -20,12 +20,10 @@ var (
 		"Project",
 		"Tags",
 	}
-	notSelectText = "Not Select"
 )
 
 type Work struct {
 	Table *tview.Table
-	Form  *tview.Form
 }
 
 func NewWork() *Work {
@@ -35,9 +33,6 @@ func NewWork() *Work {
 			SetSelectable(true, false).
 			SetFixed(1, 1).
 			SetBordersColor(tview.Styles.BorderColor),
-		Form: tview.NewForm().
-			SetButtonBackgroundColor(tcell.ColorPurple).
-			SetLabelColor(tcell.ColorPurple),
 	}
 	for i, header := range workHeader {
 		work.Table.
@@ -66,7 +61,6 @@ func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
 	for i, chronoWork := range chronoWorks {
 		w.configureTable(i, chronoWork)
 	}
-	w.configureForm(tui)
 
 	return w, nil
 }
@@ -79,7 +73,7 @@ func (w *Work) goToBottom() {
 	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
-func (w *Work) TableCapture(tui *service.TUI) {
+func (w *Work) TableCapture(tui *service.TUI, form *Form) {
 	w.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyRune:
@@ -89,35 +83,12 @@ func (w *Work) TableCapture(tui *service.TUI) {
 			case 'b':
 				w.goToBottom()
 			case 'a':
+				form.ResetForm()
 				tui.SetFocus("mainForm")
 			}
 		}
 		return event
 	})
-}
-
-func (w *Work) FormCapture(tui *service.TUI) {
-	w.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyCtrlB:
-			w.resetForm()
-			tui.SetFocus("mainContent")
-		}
-		return event
-	})
-}
-
-func (w *Work) resetForm() {
-	w.Form.
-		GetFormItemByLabel("Title").(*tview.InputField).
-		SetText("")
-	w.Form.
-		GetFormItemByLabel("Project").(*tview.DropDown).
-		SetCurrentOption(0)
-	w.Form.
-		GetFormItemByLabel("Tags").(*tview.DropDown).
-		SetOptions([]string{notSelectText}, nil).
-		SetCurrentOption(0)
 }
 
 func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
@@ -148,37 +119,7 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	// Tags
 	w.Table.SetCell(row+1, 4,
 		tview.
-			NewTableCell(chronoWork.GetCombinedTagNames()).
+			NewTableCell(chronoWork.Tag.Name).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(1))
-}
-
-func (w *Work) configureForm(tui *service.TUI) {
-	tagsOptions := append([]string{notSelectText})
-	w.Form.
-		AddInputField("Title", "", 50, nil, nil).
-		AddDropDown("Project", append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...), 0, w.projectDropDownChanged).
-		AddDropDown("Tags", tagsOptions, 0, nil).
-		AddButton("Save", nil).
-		AddButton("Cancel", func() {
-			w.resetForm()
-			tui.SetFocus("mainContent")
-		})
-}
-
-func (w *Work) projectDropDownChanged(option string, optionIndex int) {
-	var tagsOptions []string
-	if w.Form.GetFormItemByLabel("Tags") == nil {
-		return
-	}
-	var projectType models.ProjectType
-	result := db.DB.Preload("Tags").Where("name = ?", option).Find(&projectType)
-	if result.Error != nil {
-		tagsOptions = []string{notSelectText}
-	} else {
-		tagsOptions = append([]string{notSelectText}, projectType.GetTagNames()...)
-	}
-	w.Form.GetFormItemByLabel("Tags").(*tview.DropDown).
-		SetOptions(tagsOptions, nil).
-		SetCurrentOption(0)
 }

@@ -32,13 +32,15 @@ func InitialSetting() error {
 	if err != nil {
 		return err
 	}
+	form := widgets.NewForm()
+	form = form.GenerateInitForm(tui)
 
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)
-	tui.SetMain(mainTitle, work.Form, timer, work.Table, true) // default focus
+	tui.SetMain(mainTitle, form.Form, timer, work.Table, true) // default focus
 
-	work.TableCapture(tui)
-	work.FormCapture(tui)
+	work.TableCapture(tui, form)
+	form.FormCapture(tui)
 
 	tui.GlobalKeyActions()
 	if err = tui.App.SetRoot(tui.Grid, true).EnableMouse(true).Run(); err != nil {

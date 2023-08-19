@@ -30,6 +30,7 @@ func CreateTestData(db *gorm.DB) error {
 		chronoWork := models.ChronoWork{
 			Title:         fmt.Sprintf("Sample Work %d", i+1),
 			ProjectTypeID: projectType.ID,
+			TagID:         tags[i%2].ID,
 			StartTime:     time.Now(),
 			EndTime:       time.Now().Add(time.Hour),
 			TotalSeconds:  6239,
