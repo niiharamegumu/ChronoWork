@@ -25,8 +25,8 @@ func NewForm() *Form {
 	return form
 }
 
-func (f *Form) GenerateInitForm(tui *service.TUI) *Form {
-	f.configureForm(tui)
+func (f *Form) GenerateInitForm(tui *service.TUI, work *Work) *Form {
+	f.ConfigureForm(tui, work)
 	return f
 }
 
@@ -46,7 +46,7 @@ func (f *Form) ResetForm() {
 	f.Form.GetFormItemByLabel("Tags").(*tview.DropDown).SetOptions([]string{notSelectText}, nil).SetCurrentOption(0)
 }
 
-func (f *Form) configureForm(tui *service.TUI) {
+func (f *Form) ConfigureForm(tui *service.TUI, work *Work) {
 	tagsOptions := append([]string{notSelectText})
 	f.Form.
 		AddInputField("Title", "", 50, nil, nil).
@@ -54,6 +54,10 @@ func (f *Form) configureForm(tui *service.TUI) {
 		AddDropDown("Tags", tagsOptions, 0, nil).
 		AddButton("Save", func() {
 			if err := f.store(); err != nil {
+				log.Println(err)
+				return
+			}
+			if err := work.ReStoreTable(); err != nil {
 				log.Println(err)
 				return
 			}
