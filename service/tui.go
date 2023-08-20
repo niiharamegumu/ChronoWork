@@ -35,6 +35,16 @@ func (t *TUI) SetMain(mainTitle, mainForm, mainTimer, mainContent tview.Primitiv
 	t.Widgets["mainContent"] = mainContent
 }
 
+func (t *TUI) SetModal(modal tview.Primitive) {
+	t.App.SetRoot(modal, false)
+	t.Widgets["modal"] = modal
+}
+
+func (t *TUI) DeleteModal() {
+	t.App.SetRoot(t.Grid, true)
+	delete(t.Widgets, "modal")
+}
+
 func NewTUI() *TUI {
 	return &TUI{
 		App: tview.NewApplication(),

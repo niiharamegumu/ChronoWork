@@ -39,6 +39,14 @@ func (c *ChronoWork) FindInRangeByTime(db *gorm.DB, startTime, endTime time.Time
 	return chronoWorks, nil
 }
 
+func DeleteChronoWork(db *gorm.DB, id uint) error {
+	result := db.Delete(&ChronoWork{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func CreateChronoWork(db *gorm.DB, title string, projectTypeID, tagID uint) error {
 	chronoWork := ChronoWork{
 		Title:         title,
