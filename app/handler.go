@@ -26,7 +26,7 @@ func InitialSetting() error {
 	mainTitle := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
 		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
-	timer := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("Timer")
+	timer := widgets.NewTimer()
 	work := widgets.NewWork()
 	work, err = work.GenerateInitWork(tui)
 	if err != nil {
@@ -37,9 +37,9 @@ func InitialSetting() error {
 
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)
-	tui.SetMain(mainTitle, form.Form, timer, work.Table, true) // default focus
+	tui.SetMain(mainTitle, form.Form, timer.Timer, work.Table, true) // default focus
 
-	work.TableCapture(tui, form)
+	work.TableCapture(tui, form, timer)
 	form.FormCapture(tui)
 
 	tui.GlobalKeyActions()

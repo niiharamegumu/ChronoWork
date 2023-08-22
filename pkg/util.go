@@ -11,7 +11,7 @@ func FormatTime(seconds int) string {
 	} else if seconds >= 60 {
 		return fmt.Sprintf("%02d:%02d", seconds/60, seconds%60)
 	} else {
-		return fmt.Sprintf("%ds", seconds)
+		return fmt.Sprintf("%02ds", seconds)
 	}
 }
 

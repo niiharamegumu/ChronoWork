@@ -1,6 +1,7 @@
 package models
 
 import (
+	"math"
 	"time"
 
 	"gorm.io/gorm"
@@ -20,12 +21,41 @@ type ChronoWork struct {
 	Tag         Tag         `gorm:"foreignkey:TagID"`
 }
 
+func (c *ChronoWork) StartTrackingChronoWork(db *gorm.DB) error {
+	result := db.Model(c).Updates(map[string]interface{}{
+		"start_time":  time.Now(),
+		"end_time":    time.Time{},
+		"is_tracking": true,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+func (c *ChronoWork) StopTrackingChronoWorks(db *gorm.DB) error {
+	result := db.Model(c).Where("is_tracking = ?", true).Updates(map[string]interface{}{
+		"end_time":    time.Now(),
+		"is_tracking": false,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	result = db.Model(c).Where("is_tracking = ?", false).Updates(map[string]interface{}{
+		"total_seconds": gorm.Expr("total_seconds + ?", int(math.Floor(c.EndTime.Sub(c.StartTime).Seconds()))),
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func (c *ChronoWork) FindInRangeByTime(db *gorm.DB, startTime, endTime time.Time) ([]ChronoWork, error) {
 	var chronoWorks []ChronoWork
 	result := db.
 		Preload("ProjectType").
 		Preload("Tag").
-		Order("updated_at desc").
+		Order("created_at desc").
 		Order("id desc").
 		Find(
 			&chronoWorks,
@@ -39,8 +69,26 @@ func (c *ChronoWork) FindInRangeByTime(db *gorm.DB, startTime, endTime time.Time
 	return chronoWorks, nil
 }
 
+func FindChronoWork(db *gorm.DB, id uint) (ChronoWork, error) {
+	var chronoWork ChronoWork
+	result := db.First(&chronoWork, id)
+	if result.Error != nil {
+		return chronoWork, result.Error
+	}
+	return chronoWork, nil
+}
+
+func FindTrackingChronoWorks(db *gorm.DB) ([]ChronoWork, error) {
+	var chronoWorks []ChronoWork
+	result := db.Find(&chronoWorks, "is_tracking = ?", true)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return chronoWorks, nil
+}
+
 func DeleteChronoWork(db *gorm.DB, id uint) error {
-	result := db.Delete(&ChronoWork{}, id)
+	result := db.Unscoped().Delete(&ChronoWork{}, id)
 	if result.Error != nil {
 		return result.Error
 	}

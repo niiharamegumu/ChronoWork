@@ -31,6 +31,7 @@ func (t *TUI) SetMain(mainTitle, mainForm, mainTimer, mainContent tview.Primitiv
 	t.Grid.AddItem(main, 1, 1, 1, 2, 0, 100, focus)
 	t.Widgets["main"] = main
 	t.Widgets["mainTitle"] = mainTitle
+	t.Widgets["mainTimer"] = mainTimer
 	t.Widgets["mainForm"] = mainForm
 	t.Widgets["mainContent"] = mainContent
 }

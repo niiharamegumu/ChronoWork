@@ -20,6 +20,7 @@ var (
 		"Title",
 		"Project",
 		"Tags",
+		"TRACKING",
 	}
 )
 
@@ -46,20 +47,24 @@ func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
 	return w, nil
 }
 
-func (w *Work) TableCapture(tui *service.TUI, form *Form) {
+func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 	w.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 't':
+				// table top
 				w.goToTop()
 			case 'b':
+				// table bottom
 				w.goToBottom()
 			case 'a':
+				// add new work
 				form.Form.Clear(true)
 				form.ConfigureForm(tui, w)
 				tui.SetFocus("mainForm")
 			case 'd':
+				// delete work
 				row, _ := w.Table.GetSelection()
 				cell := w.Table.GetCell(row, 0)
 				if cell.Text == "" {
@@ -87,6 +92,49 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form) {
 					})
 				tui.SetModal(modal)
 				tui.SetFocus("modal")
+			}
+		case tcell.KeyEnter:
+			// toggle tracking
+			row, _ := w.Table.GetSelection()
+			cell := w.Table.GetCell(row, 0)
+			if cell.Text == "" {
+				break
+			}
+			id := cell.Text
+			if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
+				uintId := uint(intId)
+				chronoWork, err := models.FindChronoWork(db.DB, uintId)
+				if err != nil {
+					log.Println(err)
+					break
+				}
+				chronoWorks, err := models.FindTrackingChronoWorks(db.DB)
+				if err != nil {
+					log.Println(err)
+					break
+				}
+				// if tracking work exists, stop tracking
+				if len(chronoWorks) > 0 {
+					for _, cw := range chronoWorks {
+						if cw.ID != chronoWork.ID {
+							if err := cw.StopTrackingChronoWorks(db.DB); err != nil {
+								log.Println(err)
+								break
+							}
+						}
+					}
+				}
+				// target tracking work
+				if chronoWork.IsTracking {
+					chronoWork.StopTrackingChronoWorks(db.DB)
+					timer.Timer.SetText("00s")
+					timer.StopCalculateSeconds()
+				} else {
+					chronoWork.StartTrackingChronoWork(db.DB)
+					timer.SetStartTimer(chronoWork.StartTime)
+					timer.SetCalculateSeconds(tui)
+				}
+				w.ReStoreTable()
 			}
 		}
 		return event
@@ -171,4 +219,20 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 			NewTableCell(chronoWork.Tag.Name).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(1))
+	// TRACKING
+	if chronoWork.IsTracking {
+		w.Table.SetCell(row+1, 5,
+			tview.
+				NewTableCell("Yes").
+				SetAlign(tview.AlignCenter).
+				SetTextColor(tcell.ColorGreen).
+				SetExpansion(1))
+	} else {
+		w.Table.SetCell(row+1, 5,
+			tview.
+				NewTableCell("No").
+				SetAlign(tview.AlignCenter).
+				SetTextColor(tcell.ColorRed).
+				SetExpansion(1))
+	}
 }
