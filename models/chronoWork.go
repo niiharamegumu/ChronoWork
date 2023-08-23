@@ -71,7 +71,7 @@ func (c *ChronoWork) FindInRangeByTime(db *gorm.DB, startTime, endTime time.Time
 
 func FindChronoWork(db *gorm.DB, id uint) (ChronoWork, error) {
 	var chronoWork ChronoWork
-	result := db.First(&chronoWork, id)
+	result := db.Preload("ProjectType").Preload("Tag").First(&chronoWork, id)
 	if result.Error != nil {
 		return chronoWork, result.Error
 	}
