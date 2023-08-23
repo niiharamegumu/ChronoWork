@@ -127,12 +127,13 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 				// target tracking work
 				if chronoWork.IsTracking {
 					chronoWork.StopTrackingChronoWorks(db.DB)
-					timer.Timer.SetText("00s")
+					timer.ResetSetText()
 					timer.StopCalculateSeconds()
 				} else {
 					chronoWork.StartTrackingChronoWork(db.DB)
 					timer.SetStartTimer(chronoWork.StartTime)
 					timer.SetCalculateSeconds(tui)
+					timer.SetTimerText(chronoWork)
 				}
 				w.ReStoreTable()
 			}

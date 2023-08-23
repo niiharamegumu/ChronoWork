@@ -37,7 +37,7 @@ func InitialSetting() error {
 
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)
-	tui.SetMain(mainTitle, form.Form, timer.Timer, work.Table, true) // default focus
+	tui.SetMain(mainTitle, form.Form, timer.Wrapper, work.Table, true) // default focus
 
 	work.TableCapture(tui, form, timer)
 	form.FormCapture(tui)
