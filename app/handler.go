@@ -26,12 +26,19 @@ func InitialSetting() error {
 	mainTitle := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
 		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
+
 	timer := widgets.NewTimer()
+	err = timer.CheckActiveTracking(tui)
+	if err != nil {
+		return err
+	}
+
 	work := widgets.NewWork()
 	work, err = work.GenerateInitWork(tui)
 	if err != nil {
 		return err
 	}
+
 	form := widgets.NewForm()
 	form = form.GenerateInitForm(tui, work)
 

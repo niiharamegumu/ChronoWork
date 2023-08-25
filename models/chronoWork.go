@@ -80,7 +80,10 @@ func FindChronoWork(db *gorm.DB, id uint) (ChronoWork, error) {
 
 func FindTrackingChronoWorks(db *gorm.DB) ([]ChronoWork, error) {
 	var chronoWorks []ChronoWork
-	result := db.Find(&chronoWorks, "is_tracking = ?", true)
+	result := db.
+		Preload("ProjectType").
+		Preload("Tag").
+		Find(&chronoWorks, "is_tracking = ?", true)
 	if result.Error != nil {
 		return nil, result.Error
 	}
