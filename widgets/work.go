@@ -175,8 +175,37 @@ func (w *Work) setBody() error {
 		log.Println(err)
 		return err
 	}
+
+	activeTrackingChronoWorks, err := models.FindTrackingChronoWorks(db.DB)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	if len(activeTrackingChronoWorks) > 0 {
+		for _, activeTrackingChronoWork := range activeTrackingChronoWorks {
+			isInclude := false
+			for _, cw := range chronoWorks {
+				if cw.ID == activeTrackingChronoWork.ID {
+					isInclude = true
+					break
+				}
+			}
+			if !isInclude {
+				chronoWorks = append(chronoWorks, activeTrackingChronoWork)
+			}
+		}
+	}
+
 	for i, chronoWork := range chronoWorks {
 		w.configureTable(i, chronoWork)
+	}
+	if len(activeTrackingChronoWorks) > 0 {
+		for i, chronoWork := range chronoWorks {
+			if chronoWork.ID == activeTrackingChronoWorks[0].ID {
+				w.Table.Select(i+1, 0)
+				break
+			}
+		}
 	}
 	return nil
 }
