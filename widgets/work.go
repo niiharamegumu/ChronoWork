@@ -61,8 +61,49 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 			case 'a':
 				// add new work
 				form.Form.Clear(true)
-				form.ConfigureForm(tui, w)
+				form.ConfigureStoreForm(tui, w)
 				tui.SetFocus("mainForm")
+			case 'u':
+				// update work
+				row, _ := w.Table.GetSelection()
+				cell := w.Table.GetCell(row, 0)
+				if cell.Text == "" {
+					break
+				}
+				id := cell.Text
+				if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
+					uintId := uint(intId)
+					chronoWork, err := models.FindChronoWork(db.DB, uintId)
+					if err != nil {
+						log.Println(err)
+						break
+					}
+					form.Form.Clear(true)
+					form.configureUpdateForm(tui, w, &chronoWork)
+					tui.SetFocus("mainForm")
+				}
+			case 'r':
+				// reset timer or update timer
+				row, _ := w.Table.GetSelection()
+				cell := w.Table.GetCell(row, 0)
+				if cell.Text == "" {
+					break
+				}
+				id := cell.Text
+				if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
+					uintId := uint(intId)
+					chronoWork, err := models.FindChronoWork(db.DB, uintId)
+					if err != nil {
+						log.Println(err)
+						break
+					}
+					if chronoWork.TotalSeconds == 0 {
+						break
+					}
+					form.Form.Clear(true)
+					form.configureTimerForm(tui, w, &chronoWork)
+					tui.SetFocus("mainForm")
+				}
 			case 'd':
 				// delete work
 				row, _ := w.Table.GetSelection()
