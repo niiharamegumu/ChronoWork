@@ -1,7 +1,9 @@
 package widgets
 
 import (
+	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
@@ -20,7 +22,9 @@ func NewForm() *Form {
 	form := &Form{
 		Form: tview.NewForm().
 			SetButtonBackgroundColor(tcell.ColorPurple).
-			SetLabelColor(tcell.ColorPurple),
+			SetLabelColor(tcell.ColorPurple).
+			SetFieldTextColor(tcell.ColorGray).
+			SetFieldBackgroundColor(tcell.ColorWhite),
 	}
 	return form
 }
@@ -116,6 +120,30 @@ func (f *Form) configureUpdateForm(tui *service.TUI, work *Work, chronoWork *mod
 		})
 }
 
+func (f *Form) configureTimerForm(tui *service.TUI, work *Work, chronoWork *models.ChronoWork) {
+	hour := chronoWork.TotalSeconds / 3600
+	minute := (chronoWork.TotalSeconds - hour*3600) / 60
+	second := chronoWork.TotalSeconds - hour*3600 - minute*60
+
+	f.Form.AddInputField("Hour(0-)", fmt.Sprint(hour), 20, nil, nil).
+		AddInputField("Minute(0-59)", fmt.Sprint(minute), 20, nil, nil).
+		AddInputField("Second(0-59)", fmt.Sprint(second), 20, nil, nil).
+		AddButton("Reset", func() {
+			if err := f.resetTimer(chronoWork); err != nil {
+				log.Println(err)
+				return
+			}
+			if err := work.ReStoreTable(); err != nil {
+				log.Println(err)
+				return
+			}
+			tui.SetFocus("mainContent")
+		}).
+		AddButton("Cancel", func() {
+			tui.SetFocus("mainContent")
+		})
+}
+
 func (f *Form) projectDropDownChanged(option string, optionIndex int) {
 	var tagsOptions []string
 	if f.Form.GetFormItemByLabel("Tags") == nil {
@@ -193,6 +221,32 @@ func (f *Form) update(chronoWork *models.ChronoWork) error {
 		}
 	}
 	if err := chronoWork.UpdateChronoWork(db.DB, title, projectTypeID, tagID); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func (f *Form) resetTimer(chronoWork *models.ChronoWork) error {
+	hour := f.Form.GetFormItemByLabel("Hour(0-)").(*tview.InputField).GetText()
+	minute := f.Form.GetFormItemByLabel("Minute(0-59)").(*tview.InputField).GetText()
+	second := f.Form.GetFormItemByLabel("Second(0-59)").(*tview.InputField).GetText()
+
+	var hourInt, minuteInt, secondInt uint64
+	var err error
+	if hourInt, err = strconv.ParseUint(hour, 10, 16); err != nil {
+		return err
+	}
+	if minuteInt, err = strconv.ParseUint(minute, 10, 16); err != nil {
+		return err
+	}
+	if secondInt, err = strconv.ParseUint(second, 10, 16); err != nil {
+		return err
+	}
+	totalSeconds := int(hourInt*3600 + minuteInt*60 + secondInt)
+	err = chronoWork.UpdateChronoWorkTotalSeconds(db.DB, totalSeconds)
+	if err != nil {
 		log.Println(err)
 		return err
 	}
