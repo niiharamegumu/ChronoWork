@@ -69,6 +69,18 @@ func (c *ChronoWork) FindInRangeByTime(db *gorm.DB, startTime, endTime time.Time
 	return chronoWorks, nil
 }
 
+func (c *ChronoWork) UpdateChronoWork(db *gorm.DB, title string, projectTypeID, tagID uint) error {
+	result := db.Model(c).Select("title", "project_type_id", "tag_id").Updates(map[string]interface{}{
+		"title":           title,
+		"project_type_id": projectTypeID,
+		"tag_id":          tagID,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func FindChronoWork(db *gorm.DB, id uint) (ChronoWork, error) {
 	var chronoWork ChronoWork
 	result := db.Preload("ProjectType").Preload("Tag").First(&chronoWork, id)
