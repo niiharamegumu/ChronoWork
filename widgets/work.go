@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
@@ -41,7 +42,7 @@ func NewWork() *Work {
 
 func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
 	w.setHeader()
-	if err := w.setBody(); err != nil {
+	if err := w.setBody(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
 		return nil, err
 	}
 	return w, nil
@@ -122,7 +123,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 								if err := models.DeleteChronoWork(db.DB, uintId); err != nil {
 									log.Println(err)
 								}
-								if err := w.ReStoreTable(); err != nil {
+								if err := w.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
 									log.Println(err)
 								}
 							}
@@ -176,17 +177,17 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					timer.SetCalculateSeconds(tui)
 					timer.SetTimerText(chronoWork)
 				}
-				w.ReStoreTable()
+				w.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime())
 			}
 		}
 		return event
 	})
 }
 
-func (w *Work) ReStoreTable() error {
+func (w *Work) ReStoreTable(startTime, endTime time.Time) error {
 	w.Table.Clear()
 	w.setHeader()
-	if err := w.setBody(); err != nil {
+	if err := w.setBody(startTime, endTime); err != nil {
 		return err
 	}
 	return nil
@@ -206,12 +207,12 @@ func (w *Work) setHeader() {
 	}
 }
 
-func (w *Work) setBody() error {
+func (w *Work) setBody(startTime, endTime time.Time) error {
 	var chronoWork models.ChronoWork
 	var chronoWorks []models.ChronoWork
 	var err error
 
-	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, pkg.TodayStartTime(), pkg.TodayEndTime())
+	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, startTime, endTime)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -237,9 +238,32 @@ func (w *Work) setBody() error {
 		}
 	}
 
-	for i, chronoWork := range chronoWorks {
-		w.configureTable(i, chronoWork)
+	date := time.Now().Format("2006-01-02")
+	rowCount := 1
+	for _, chronoWork := range chronoWorks {
+		targetDate := chronoWork.CreatedAt.Format("2006-01-02")
+		if date != targetDate {
+			date = targetDate
+			// date row
+			w.Table.SetCell(rowCount, 0,
+				tview.
+					NewTableCell(date).
+					SetAlign(tview.AlignCenter).
+					SetTextColor(tcell.ColorWhite).
+					SetBackgroundColor(tcell.ColorGray).
+					SetSelectable(false))
+			for i := 1; i < len(workHeader); i++ {
+				w.Table.SetCell(rowCount, i,
+					tview.NewTableCell("").
+						SetBackgroundColor(tcell.ColorGray).
+						SetSelectable(false))
+			}
+			rowCount++
+		}
+		w.configureTable(rowCount, chronoWork)
+		rowCount++
 	}
+
 	if len(activeTrackingChronoWorks) > 0 {
 		for i, chronoWork := range chronoWorks {
 			if chronoWork.ID == activeTrackingChronoWorks[0].ID {
@@ -261,49 +285,49 @@ func (w *Work) goToBottom() {
 
 func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	// ID
-	w.Table.SetCell(row+1, 0,
+	w.Table.SetCell(row, 0,
 		tview.
 			NewTableCell(fmt.Sprintf("%d", chronoWork.ID)).
 			SetAlign(tview.AlignCenter).
-			SetExpansion(1))
+			SetExpansion(0))
 	// TotalTime
-	w.Table.SetCell(row+1, 1,
+	w.Table.SetCell(row, 1,
 		tview.
 			NewTableCell(pkg.FormatTime(chronoWork.TotalSeconds)).
 			SetAlign(tview.AlignCenter).
-			SetExpansion(1))
+			SetExpansion(0))
 	// Title
-	w.Table.SetCell(row+1, 2,
+	w.Table.SetCell(row, 2,
 		tview.
 			NewTableCell(chronoWork.Title).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(1))
 	// Project
-	w.Table.SetCell(row+1, 3,
+	w.Table.SetCell(row, 3,
 		tview.
 			NewTableCell(chronoWork.ProjectType.Name).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(1))
 	// Tags
-	w.Table.SetCell(row+1, 4,
+	w.Table.SetCell(row, 4,
 		tview.
 			NewTableCell(chronoWork.Tag.Name).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(1))
 	// TRACKING
 	if chronoWork.IsTracking {
-		w.Table.SetCell(row+1, 5,
+		w.Table.SetCell(row, 5,
 			tview.
 				NewTableCell("Yes").
 				SetAlign(tview.AlignCenter).
 				SetTextColor(tcell.ColorGreen).
-				SetExpansion(1))
+				SetExpansion(0))
 	} else {
-		w.Table.SetCell(row+1, 5,
+		w.Table.SetCell(row, 5,
 			tview.
 				NewTableCell("No").
 				SetAlign(tview.AlignCenter).
 				SetTextColor(tcell.ColorRed).
-				SetExpansion(1))
+				SetExpansion(0))
 	}
 }
