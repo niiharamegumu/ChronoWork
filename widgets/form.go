@@ -55,7 +55,7 @@ func (f *Form) ConfigureStoreForm(tui *service.TUI, work *Work) {
 	f.Form.
 		AddInputField("Title", "", 50, nil, nil).
 		AddDropDown("Project", append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...), 0, f.projectDropDownChanged).
-		AddDropDown("Tags", append([]string{notSelectText}), 0, nil).
+		AddDropDown("Tags", []string{notSelectText}, 0, nil).
 		AddButton("Store", func() {
 			if err := f.store(); err != nil {
 				log.Println(err)
@@ -74,7 +74,7 @@ func (f *Form) ConfigureStoreForm(tui *service.TUI, work *Work) {
 
 func (f *Form) configureUpdateForm(tui *service.TUI, work *Work, chronoWork *models.ChronoWork) {
 	projectOptions := append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...)
-	tagsOptions := append([]string{notSelectText})
+	tagsOptions := []string{notSelectText}
 	f.Form.AddInputField("Title", chronoWork.Title, 50, nil, nil).
 		AddDropDown("Project", projectOptions, 0, f.projectDropDownChanged).
 		AddDropDown("Tags", tagsOptions, 0, nil)

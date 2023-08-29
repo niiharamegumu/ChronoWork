@@ -85,7 +85,7 @@ func (t *Timer) SetCalculateSeconds(tui *service.TUI) {
 			case <-t.cancelCtx.Done():
 				return
 			default:
-				seconds := int(time.Now().Sub(t.StartTime).Seconds())
+				seconds := int(time.Since(t.StartTime).Seconds())
 				tui.App.QueueUpdateDraw(func() {
 					t.Time.SetText(pkg.FormatTime(seconds))
 				})
