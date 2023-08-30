@@ -15,13 +15,6 @@ func init() {
 		os.Exit(1)
 	}
 	log.Println("database connection success")
-
-	// ==============================
-	// [SEEDER] create test data
-	// ==============================
-	// if err := db.CreateTestData(db.DB); err != nil {
-	// 	log.Println("error creating test data", err)
-	// }
 }
 
 func Execute() {
@@ -31,6 +24,13 @@ func Execute() {
 		}
 		log.Println("database connection closed")
 	}()
+
+	// ==============================
+	// [SEEDER] create test data
+	// ==============================
+	// if err := db.CreateTestData(db.DB); err != nil {
+	// 	log.Println("error creating test data", err)
+	// }
 
 	if err := InitialSetting(); err != nil {
 		log.Println("error", err)
