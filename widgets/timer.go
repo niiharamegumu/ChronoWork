@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
 	"github.com/niiharamegumu/ChronoWork/pkg"
@@ -26,14 +27,19 @@ type Timer struct {
 func NewTimer() *Timer {
 	time := tview.NewTextView().
 		SetLabel("Timer : ").
+		SetTextColor(tcell.ColorPurple).
 		SetText("00:00:00")
 	title := tview.NewTextView().
+		SetTextColor(tcell.ColorPurple).
 		SetLabel("TItle : ")
 	CreatedDate := tview.NewTextView().
+		SetTextColor(tcell.ColorPurple).
 		SetLabel("Created Date : ")
 	projectName := tview.NewTextView().
+		SetTextColor(tcell.ColorPurple).
 		SetLabel("Project Name : ")
 	tagName := tview.NewTextView().
+		SetTextColor(tcell.ColorPurple).
 		SetLabel("Tag Name : ")
 	timer := &Timer{
 		Wrapper: tview.NewGrid().
@@ -85,7 +91,7 @@ func (t *Timer) SetCalculateSeconds(tui *service.TUI) {
 			case <-t.cancelCtx.Done():
 				return
 			default:
-				seconds := int(time.Now().Sub(t.StartTime).Seconds())
+				seconds := int(time.Since(t.StartTime).Seconds())
 				tui.App.QueueUpdateDraw(func() {
 					t.Time.SetText(pkg.FormatTime(seconds))
 				})
@@ -102,6 +108,7 @@ func (t *Timer) StopCalculateSeconds() {
 func (t *Timer) ResetSetText() {
 	t.Time.SetText("00:00:00")
 	t.Title.SetText("")
+	t.CreatedDate.SetText("")
 	t.ProjectName.SetText("")
 	t.TagName.SetText("")
 }

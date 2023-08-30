@@ -8,6 +8,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
+	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
 	"github.com/rivo/tview"
 )
@@ -38,7 +39,7 @@ func (f *Form) FormCapture(tui *service.TUI) {
 	f.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyCtrlB:
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		}
 		return event
 	})
@@ -54,26 +55,26 @@ func (f *Form) ConfigureStoreForm(tui *service.TUI, work *Work) {
 	f.Form.
 		AddInputField("Title", "", 50, nil, nil).
 		AddDropDown("Project", append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...), 0, f.projectDropDownChanged).
-		AddDropDown("Tags", append([]string{notSelectText}), 0, nil).
+		AddDropDown("Tags", []string{notSelectText}, 0, nil).
 		AddButton("Store", func() {
 			if err := f.store(); err != nil {
 				log.Println(err)
 				return
 			}
-			if err := work.ReStoreTable(); err != nil {
+			if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 				log.Println(err)
 				return
 			}
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		}).
 		AddButton("Cancel", func() {
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		})
 }
 
 func (f *Form) configureUpdateForm(tui *service.TUI, work *Work, chronoWork *models.ChronoWork) {
 	projectOptions := append([]string{notSelectText}, models.AllProjectTypeNames(db.DB)...)
-	tagsOptions := append([]string{notSelectText})
+	tagsOptions := []string{notSelectText}
 	f.Form.AddInputField("Title", chronoWork.Title, 50, nil, nil).
 		AddDropDown("Project", projectOptions, 0, f.projectDropDownChanged).
 		AddDropDown("Tags", tagsOptions, 0, nil)
@@ -109,14 +110,14 @@ func (f *Form) configureUpdateForm(tui *service.TUI, work *Work, chronoWork *mod
 			log.Println(err)
 			return
 		}
-		if err := work.ReStoreTable(); err != nil {
+		if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 			log.Println(err)
 			return
 		}
-		tui.SetFocus("mainContent")
+		tui.SetFocus("mainWorkContent")
 	}).
 		AddButton("Cancel", func() {
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		})
 }
 
@@ -133,14 +134,14 @@ func (f *Form) configureTimerForm(tui *service.TUI, work *Work, chronoWork *mode
 				log.Println(err)
 				return
 			}
-			if err := work.ReStoreTable(); err != nil {
+			if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 				log.Println(err)
 				return
 			}
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		}).
 		AddButton("Cancel", func() {
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		})
 }
 

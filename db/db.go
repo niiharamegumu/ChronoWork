@@ -30,6 +30,7 @@ func ConnectDB() error {
 		&models.ChronoWork{},
 		&models.ProjectType{},
 		&models.Tag{},
+		&models.Setting{},
 	)
 
 	return nil

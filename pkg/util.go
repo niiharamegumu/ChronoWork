@@ -3,6 +3,9 @@ package pkg
 import (
 	"fmt"
 	"time"
+
+	"github.com/niiharamegumu/ChronoWork/db"
+	"github.com/niiharamegumu/ChronoWork/models"
 )
 
 func FormatTime(seconds int) string {
@@ -15,12 +18,19 @@ func FormatTime(seconds int) string {
 	}
 }
 
-func TodayStartTime() time.Time {
-	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
-}
-
 func TodayEndTime() time.Time {
 	now := time.Now()
 	return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.Local)
+}
+
+func RelativeStartTime() time.Time {
+	now := time.Now()
+	startTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+
+	var setting models.Setting
+	if err := setting.GetSetting(db.DB); err != nil {
+		return startTime
+	}
+
+	return startTime.AddDate(0, 0, -int(setting.RelativeDate))
 }

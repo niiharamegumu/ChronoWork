@@ -20,32 +20,36 @@ func InitialSetting() error {
 
 	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(headerText)
 
-	menu := widgets.NewMenu()
-	menu = menu.GenerateInitMenu(tui)
-
 	mainTitle := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
 		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
-
 	timer := widgets.NewTimer()
 	err = timer.CheckActiveTracking(tui)
 	if err != nil {
 		return err
 	}
-
 	work := widgets.NewWork()
 	work, err = work.GenerateInitWork(tui)
 	if err != nil {
 		return err
 	}
-
 	form := widgets.NewForm()
 	form = form.GenerateInitForm(tui, work)
 
+	// add page
+	setting := widgets.NewSetting()
+	setting.GenerateInitSetting(tui)
+	tui.SetMainPage("setting", setting.Form, false)
+	if err = tui.SetWidget("settingForm", setting.Form); err != nil {
+		return err
+	}
+
+	menu := widgets.NewMenu()
+	menu = menu.GenerateInitMenu(tui, work, setting)
+
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)
-	tui.SetMain(mainTitle, form.Form, timer.Wrapper, work.Table, true) // default focus
-
+	tui.SetWork(mainTitle, form.Form, timer.Wrapper, work.Table, true) // default focus
 	work.TableCapture(tui, form, timer)
 	form.FormCapture(tui)
 
