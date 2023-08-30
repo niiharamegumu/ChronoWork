@@ -39,7 +39,7 @@ func (f *Form) FormCapture(tui *service.TUI) {
 	f.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyCtrlB:
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		}
 		return event
 	})
@@ -61,14 +61,14 @@ func (f *Form) ConfigureStoreForm(tui *service.TUI, work *Work) {
 				log.Println(err)
 				return
 			}
-			if err := work.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
+			if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 				log.Println(err)
 				return
 			}
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		}).
 		AddButton("Cancel", func() {
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		})
 }
 
@@ -110,14 +110,14 @@ func (f *Form) configureUpdateForm(tui *service.TUI, work *Work, chronoWork *mod
 			log.Println(err)
 			return
 		}
-		if err := work.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
+		if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 			log.Println(err)
 			return
 		}
-		tui.SetFocus("mainContent")
+		tui.SetFocus("mainWorkContent")
 	}).
 		AddButton("Cancel", func() {
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		})
 }
 
@@ -134,14 +134,14 @@ func (f *Form) configureTimerForm(tui *service.TUI, work *Work, chronoWork *mode
 				log.Println(err)
 				return
 			}
-			if err := work.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
+			if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 				log.Println(err)
 				return
 			}
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		}).
 		AddButton("Cancel", func() {
-			tui.SetFocus("mainContent")
+			tui.SetFocus("mainWorkContent")
 		})
 }
 

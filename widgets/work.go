@@ -32,17 +32,15 @@ type Work struct {
 func NewWork() *Work {
 	work := &Work{
 		Table: tview.NewTable().
-			SetBorders(true).
 			SetSelectable(true, false).
-			SetFixed(1, 1).
-			SetBordersColor(tview.Styles.BorderColor),
+			SetFixed(1, 1),
 	}
 	return work
 }
 
 func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
 	w.setHeader()
-	if err := w.setBody(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
+	if err := w.setBody(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 		return nil, err
 	}
 	return w, nil
@@ -63,7 +61,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 				// add new work
 				form.Form.Clear(true)
 				form.ConfigureStoreForm(tui, w)
-				tui.SetFocus("mainForm")
+				tui.SetFocus("mainWorkForm")
 			case 'u':
 				// update work
 				row, _ := w.Table.GetSelection()
@@ -81,7 +79,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					}
 					form.Form.Clear(true)
 					form.configureUpdateForm(tui, w, &chronoWork)
-					tui.SetFocus("mainForm")
+					tui.SetFocus("mainWorkForm")
 				}
 			case 'r':
 				// reset timer or update timer
@@ -103,7 +101,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					}
 					form.Form.Clear(true)
 					form.configureTimerForm(tui, w, &chronoWork)
-					tui.SetFocus("mainForm")
+					tui.SetFocus("mainWorkForm")
 				}
 			case 'd':
 				// delete work
@@ -123,13 +121,13 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 								if err := models.DeleteChronoWork(db.DB, uintId); err != nil {
 									log.Println(err)
 								}
-								if err := w.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime()); err != nil {
+								if err := w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
 									log.Println(err)
 								}
 							}
 						}
 						tui.DeleteModal()
-						tui.SetFocus("mainContent")
+						tui.SetFocus("mainWorkContent")
 						w.goToTop()
 					})
 				tui.SetModal(modal)
@@ -177,7 +175,8 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					timer.SetCalculateSeconds(tui)
 					timer.SetTimerText(chronoWork)
 				}
-				w.ReStoreTable(pkg.TodayStartTime(), pkg.TodayEndTime())
+				w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
+				w.Table.Select(row, 0)
 			}
 		}
 		return event
@@ -200,7 +199,8 @@ func (w *Work) setHeader() {
 				tview.
 					NewTableCell(header).
 					SetAlign(tview.AlignCenter).
-					SetTextColor(tcell.ColorPurple).
+					SetTextColor(tcell.ColorWhite).
+					SetBackgroundColor(tcell.ColorPurple).
 					SetSelectable(false).
 					SetExpansion(1),
 			)
@@ -238,24 +238,35 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 		}
 	}
 
-	date := time.Now().Format("2006-01-02")
+	date := time.Now().Format("2006/01/02")
 	rowCount := 1
 	for _, chronoWork := range chronoWorks {
-		targetDate := chronoWork.CreatedAt.Format("2006-01-02")
+		targetDate := chronoWork.CreatedAt.Format("2006/01/02")
 		if date != targetDate {
+			// blank row * 2
+			for i := 0; i < 2; i++ {
+				w.Table.SetCell(rowCount, 0,
+					tview.NewTableCell("").SetSelectable(false))
+				for i := 1; i < len(workHeader); i++ {
+					w.Table.SetCell(rowCount, i,
+						tview.NewTableCell("").SetSelectable(false))
+				}
+				rowCount++
+			}
+
 			date = targetDate
 			// date row
 			w.Table.SetCell(rowCount, 0,
 				tview.
-					NewTableCell(date).
+					NewTableCell(fmt.Sprintln(date, chronoWork.CreatedAt.Weekday())).
 					SetAlign(tview.AlignCenter).
 					SetTextColor(tcell.ColorWhite).
-					SetBackgroundColor(tcell.ColorGray).
+					SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
 					SetSelectable(false))
 			for i := 1; i < len(workHeader); i++ {
 				w.Table.SetCell(rowCount, i,
 					tview.NewTableCell("").
-						SetBackgroundColor(tcell.ColorGray).
+						SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
 						SetSelectable(false))
 			}
 			rowCount++
