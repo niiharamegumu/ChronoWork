@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	headerText = fmt.Sprintf("%s - %s", " ChronoWork ", time.Now().Format("2006-01-02"))
+	headerText = fmt.Sprintf("%s - %s", " ChronoWork ", time.Now().Format("2006/01/02"))
 	tui        = service.NewTUI()
 )
 
@@ -22,7 +22,7 @@ func InitialSetting() error {
 
 	mainTitle := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
-		SetText("Today's Work").SetTextColor(tcell.ColorPurple)
+		SetText(fmt.Sprintf("Today is %s (%v)", time.Now().Format("2006/01/02"), time.Now().Weekday())).SetTextColor(tcell.ColorPurple)
 	timer := widgets.NewTimer()
 	err = timer.CheckActiveTracking(tui)
 	if err != nil {

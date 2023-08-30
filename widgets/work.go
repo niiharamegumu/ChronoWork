@@ -23,6 +23,7 @@ var (
 		"Tags",
 		"TRACKING",
 	}
+	dateSeparateRow = 2
 )
 
 type Work struct {
@@ -194,16 +195,17 @@ func (w *Work) ReStoreTable(startTime, endTime time.Time) error {
 
 func (w *Work) setHeader() {
 	for i, header := range workHeader {
-		w.Table.
-			SetCell(0, i,
-				tview.
-					NewTableCell(header).
-					SetAlign(tview.AlignCenter).
-					SetTextColor(tcell.ColorWhite).
-					SetBackgroundColor(tcell.ColorPurple).
-					SetSelectable(false).
-					SetExpansion(1),
-			)
+		tableCell := tview.NewTableCell(header).
+			SetAlign(tview.AlignCenter).
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorPurple).
+			SetSelectable(false)
+
+		if header != "ID" {
+			tableCell.SetExpansion(1)
+		}
+
+		w.Table.SetCell(0, i, tableCell)
 	}
 }
 
@@ -243,32 +245,12 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 	for _, chronoWork := range chronoWorks {
 		targetDate := chronoWork.CreatedAt.Format("2006/01/02")
 		if date != targetDate {
-			// blank row * 2
-			for i := 0; i < 2; i++ {
-				w.Table.SetCell(rowCount, 0,
-					tview.NewTableCell("").SetSelectable(false))
-				for i := 1; i < len(workHeader); i++ {
-					w.Table.SetCell(rowCount, i,
-						tview.NewTableCell("").SetSelectable(false))
-				}
+			for i := 0; i < dateSeparateRow; i++ {
+				w.insertBlankRow(rowCount)
 				rowCount++
 			}
-
 			date = targetDate
-			// date row
-			w.Table.SetCell(rowCount, 0,
-				tview.
-					NewTableCell(fmt.Sprintln(date, chronoWork.CreatedAt.Weekday())).
-					SetAlign(tview.AlignCenter).
-					SetTextColor(tcell.ColorWhite).
-					SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
-					SetSelectable(false))
-			for i := 1; i < len(workHeader); i++ {
-				w.Table.SetCell(rowCount, i,
-					tview.NewTableCell("").
-						SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
-						SetSelectable(false))
-			}
+			w.insertDateRow(rowCount, date, chronoWork.CreatedAt.Weekday())
 			rowCount++
 		}
 		w.configureTable(rowCount, chronoWork)
@@ -284,6 +266,28 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 		}
 	}
 	return nil
+}
+
+func (w *Work) insertBlankRow(rowCount int) {
+	for i := 0; i < len(workHeader); i++ {
+		w.Table.SetCell(rowCount, i, tview.NewTableCell("").SetSelectable(false))
+	}
+}
+
+func (w *Work) insertDateRow(rowCount int, date string, weekday time.Weekday) {
+	w.Table.SetCell(rowCount, 0,
+		tview.NewTableCell(fmt.Sprintf("%s %s", date, weekday)).
+			SetAlign(tview.AlignCenter).
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
+			SetSelectable(false))
+
+	for i := 1; i < len(workHeader); i++ {
+		w.Table.SetCell(rowCount, i,
+			tview.NewTableCell("").
+				SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
+				SetSelectable(false))
+	}
 }
 
 func (w *Work) goToTop() {
