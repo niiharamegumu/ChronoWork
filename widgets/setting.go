@@ -36,7 +36,7 @@ func (s *Setting) GenerateInitSetting(tui *service.TUI) {
 			tui.SetFocus("menu")
 		}).
 		AddButton("Cancel", func() {
-			tui.ChangeToPage("work")
+			s.ReStore(tui)
 			tui.SetFocus("menu")
 		})
 }
@@ -52,12 +52,10 @@ func (s *Setting) Update() {
 	var dateInt uint64
 	var err error
 	if dateInt, err = strconv.ParseUint(relativeDate, 10, 64); err != nil {
-		log.Println(err)
 		return
 	}
 	var setting models.Setting
 	if err := setting.GetSetting(db.DB); err != nil {
-		log.Println(err)
 		return
 	}
 	setting.UpdateSetting(db.DB, int(dateInt))
