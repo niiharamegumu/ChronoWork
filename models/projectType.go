@@ -56,8 +56,9 @@ func FindProjectTypeByID(db *gorm.DB, id uint) (*ProjectType, error) {
 	return &projectType, nil
 }
 
-func DeleteProjectType(db *gorm.DB, id uint) error {
-	result := db.Unscoped().Delete(&ProjectType{}, id)
+func (p *ProjectType) DeleteProjectType(db *gorm.DB) error {
+	db.Model(p).Association("Tags").Clear()
+	result := db.Unscoped().Delete(p)
 	if result.Error != nil {
 		return result.Error
 	}
