@@ -20,6 +20,12 @@ func AllProjectTypeNames(db *gorm.DB) []string {
 	return projectTypeNames
 }
 
+func AllProjectTypeWithTags(db *gorm.DB) []ProjectType {
+	var projectTypes []ProjectType
+	db.Preload("Tags").Find(&projectTypes)
+	return projectTypes
+}
+
 func (p *ProjectType) GetTagNames() []string {
 	var tagNames []string
 	for _, tag := range p.Tags {
@@ -37,4 +43,23 @@ func FindProjectTypeByName(db *gorm.DB, name string) (*ProjectType, error) {
 		return nil, result.Error
 	}
 	return &projectType, nil
+}
+
+func FindProjectTypeByID(db *gorm.DB, id uint) (*ProjectType, error) {
+	var projectType ProjectType
+	result := db.
+		Preload("Tags").
+		First(&projectType, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &projectType, nil
+}
+
+func DeleteProjectType(db *gorm.DB, id uint) error {
+	result := db.Unscoped().Delete(&ProjectType{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

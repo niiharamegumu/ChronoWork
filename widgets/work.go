@@ -220,6 +220,10 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 		return err
 	}
 
+	if len(chronoWorks) == 0 {
+		return nil
+	}
+
 	activeTrackingChronoWorks, err := models.FindTrackingChronoWorks(db.DB)
 	if err != nil {
 		log.Println(err)
