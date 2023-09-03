@@ -11,14 +11,13 @@ import (
 )
 
 var (
-	headerText = fmt.Sprintf("%s - %s", " ChronoWork ", time.Now().Format("2006/01/02"))
-	tui        = service.NewTUI()
+	tui = service.NewTUI()
 )
 
 func InitialSetting() error {
 	var err error
 
-	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText(headerText)
+	header := tview.NewTextView().SetTextAlign(tview.AlignCenter).SetText("ChronoWork")
 
 	mainTitle := tview.NewTextView().
 		SetTextAlign(tview.AlignCenter).
@@ -43,9 +42,20 @@ func InitialSetting() error {
 	if err = tui.SetWidget("settingForm", setting.Form); err != nil {
 		return err
 	}
+	project := widgets.NewProject()
+	tui.SetMainPage("project", project.Layout, false)
+	if err = tui.SetWidget("projectForm", project.Form); err != nil {
+		return err
+	}
+	if err = tui.SetWidget("projectTable", project.Table); err != nil {
+		return err
+	}
+	project.GenerateInitProject(tui)
+	project.TableCapture(tui)
+	project.FormCapture(tui)
 
 	menu := widgets.NewMenu()
-	menu = menu.GenerateInitMenu(tui, work, setting)
+	menu = menu.GenerateInitMenu(tui, work, setting, project)
 
 	tui.SetHeader(header, false)
 	tui.SetMenu(menu.List, false)

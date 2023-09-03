@@ -21,11 +21,15 @@ func (m *Menu) AddListItem(text string, shortcut rune, selected func()) *Menu {
 	return m
 }
 
-func (m *Menu) GenerateInitMenu(tui *service.TUI, work *Work, setting *Setting) *Menu {
+func (m *Menu) GenerateInitMenu(tui *service.TUI, work *Work, setting *Setting, project *Project) *Menu {
 	m.AddListItem("Works", 'w', func() {
 		work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
 		tui.ChangeToPage("work")
 		tui.SetFocus("mainWorkContent")
+	})
+	m.AddListItem("Projects", 'p', func() {
+		tui.ChangeToPage("project")
+		tui.SetFocus("projectTable")
 	})
 	m.AddListItem("Setting", 's', func() {
 		setting.ReStore(tui)
