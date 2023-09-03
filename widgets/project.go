@@ -262,7 +262,11 @@ func (p *Project) TableCapture(tui *service.TUI) {
 							id := cell.Text
 							if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
 								uintId := uint(intId)
-								if err := models.DeleteProjectType(db.DB, uintId); err != nil {
+								projectType, err := models.FindProjectTypeByID(db.DB, uintId)
+								if err != nil {
+									log.Println(err)
+								}
+								if err := projectType.DeleteProjectType(db.DB); err != nil {
 									log.Println(err)
 								}
 								p.RestoreTable()

@@ -189,7 +189,7 @@ func (f *Form) store() error {
 		}
 	}
 
-	if err := models.CreateChronoWork(db.DB, title, projectTypeID, tagID); err != nil {
+	if _, err := models.CreateChronoWork(db.DB, title, projectTypeID, tagID); err != nil {
 		log.Println(err)
 		return err
 	}
