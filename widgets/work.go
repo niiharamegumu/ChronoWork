@@ -157,7 +157,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 				// if tracking work exists, stop tracking
 				if len(chronoWorks) > 0 {
 					for _, cw := range chronoWorks {
-						if cw.ID != chronoWork.ID {
+						if cw.ID != chronoWork.ID || !pkg.IsToday(cw.CreatedAt) {
 							if err := cw.StopTrackingChronoWorks(db.DB); err != nil {
 								log.Println(err)
 								break
@@ -165,19 +165,34 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 						}
 					}
 				}
-				// target tracking work
-				if chronoWork.IsTracking {
-					chronoWork.StopTrackingChronoWorks(db.DB)
-					timer.ResetSetText()
-					timer.StopCalculateSeconds()
+				if pkg.IsToday(chronoWork.CreatedAt) {
+					// target tracking work
+					if chronoWork.IsTracking {
+						chronoWork.StopTrackingChronoWorks(db.DB)
+						timer.ResetSetText()
+						timer.StopCalculateSeconds()
+					} else {
+						chronoWork.StartTrackingChronoWork(db.DB)
+						timer.SetStartTimer(chronoWork.StartTime)
+						timer.SetCalculateSeconds(tui)
+						timer.SetTimerText(chronoWork)
+					}
+					w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
+					w.Table.Select(row, 0)
 				} else {
-					chronoWork.StartTrackingChronoWork(db.DB)
-					timer.SetStartTimer(chronoWork.StartTime)
+					// chronowork copy
+					newChronoWork, err := models.CreateChronoWork(db.DB, chronoWork.Title, chronoWork.ProjectTypeID, chronoWork.TagID)
+					if err != nil {
+						log.Println(err)
+						break
+					}
+					newChronoWork.StartTrackingChronoWork(db.DB)
+					timer.SetStartTimer(newChronoWork.StartTime)
 					timer.SetCalculateSeconds(tui)
-					timer.SetTimerText(chronoWork)
+					timer.SetTimerText(newChronoWork)
+					w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
+					w.Table.Select(1, 0)
 				}
-				w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
-				w.Table.Select(row, 0)
 			}
 		}
 		return event
@@ -287,10 +302,18 @@ func (w *Work) insertDateRow(rowCount int, date string, weekday time.Weekday) {
 			SetSelectable(false))
 
 	for i := 1; i < len(workHeader); i++ {
-		w.Table.SetCell(rowCount, i,
-			tview.NewTableCell("").
-				SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
-				SetSelectable(false))
+		if workHeader[i] == "TRACKING" {
+			w.Table.SetCell(rowCount, i,
+				tview.NewTableCell("Copy to Today").
+					SetAlign(tview.AlignCenter).
+					SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
+					SetSelectable(false))
+		} else {
+			w.Table.SetCell(rowCount, i,
+				tview.NewTableCell("").
+					SetBackgroundColor(tcell.ColorMediumPurple.TrueColor()).
+					SetSelectable(false))
+		}
 	}
 }
 
@@ -334,19 +357,20 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 			SetAlign(tview.AlignCenter).
 			SetExpansion(1))
 	// TRACKING
-	if chronoWork.IsTracking {
-		w.Table.SetCell(row, 5,
-			tview.
-				NewTableCell("Yes").
-				SetAlign(tview.AlignCenter).
-				SetTextColor(tcell.ColorGreen).
-				SetExpansion(0))
+	trackingCell := tview.NewTableCell("").SetAlign(tview.AlignCenter).SetExpansion(0)
+	setText := "Yes"
+	setColor := tcell.ColorGreen
+	if pkg.IsToday(chronoWork.CreatedAt) {
+		if !chronoWork.IsTracking {
+			setText = "No"
+			setColor = tcell.ColorRed
+		}
 	} else {
-		w.Table.SetCell(row, 5,
-			tview.
-				NewTableCell("No").
-				SetAlign(tview.AlignCenter).
-				SetTextColor(tcell.ColorRed).
-				SetExpansion(0))
+		setText = "Copy"
+		if !chronoWork.IsTracking {
+			setColor = tcell.ColorRed
+		}
 	}
+	trackingCell.SetText(setText).SetTextColor(setColor)
+	w.Table.SetCell(row, 5, trackingCell)
 }

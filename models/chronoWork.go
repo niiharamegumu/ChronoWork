@@ -120,7 +120,7 @@ func DeleteChronoWork(db *gorm.DB, id uint) error {
 	return nil
 }
 
-func CreateChronoWork(db *gorm.DB, title string, projectTypeID, tagID uint) error {
+func CreateChronoWork(db *gorm.DB, title string, projectTypeID, tagID uint) (ChronoWork, error) {
 	chronoWork := ChronoWork{
 		Title:         title,
 		ProjectTypeID: projectTypeID,
@@ -132,7 +132,7 @@ func CreateChronoWork(db *gorm.DB, title string, projectTypeID, tagID uint) erro
 	}
 	result := db.Create(&chronoWork)
 	if result.Error != nil {
-		return result.Error
+		return chronoWork, result.Error
 	}
-	return nil
+	return chronoWork, nil
 }
