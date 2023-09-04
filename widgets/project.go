@@ -159,7 +159,16 @@ func (p *Project) StoreProject() error {
 }
 
 func (p *Project) UpdateProject(project *models.ProjectType) {
-	// TODO: exist work that use this project tags. if exist, can't delete, update.
+	var chronoWorks []models.ChronoWork
+	var err error
+	chronoWorks, err = models.FindChronoWorksByProjectTypeID(db.DB, project.ID)
+	if err != nil {
+		return
+	}
+	if len(chronoWorks) > 0 {
+		return
+	}
+
 	projectName := p.Form.GetFormItemByLabel("Project Name : ").(*tview.InputField).GetText()
 	projectTags := p.ReadOnlyForm.GetFormItemByLabel("Selected Tags").(*tview.TextArea).GetText()
 	if projectName == "" {
@@ -248,34 +257,55 @@ func (p *Project) TableCapture(tui *service.TUI) {
 				}
 			case 'd':
 				// delete project
-				// TODO: exist work that use this project. if exist, can't delete.
 				row, _ := p.Table.GetSelection()
 				cell := p.Table.GetCell(row, 0)
 				if cell.Text == "" {
 					break
 				}
-				modal := tview.NewModal().
-					SetText("Are you sure you want to delete this project?").
-					AddButtons([]string{"Yes", "No"}).
-					SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-						if buttonLabel == "Yes" {
-							id := cell.Text
-							if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
-								uintId := uint(intId)
-								projectType, err := models.FindProjectTypeByID(db.DB, uintId)
-								if err != nil {
-									log.Println(err)
-								}
+				id := cell.Text
+
+				var projectType *models.ProjectType
+				var chronoWorks []models.ChronoWork
+				var err error
+				var intId uint64
+				isExist := false
+
+				intId, _ = strconv.ParseUint(id, 10, 0)
+				uintId := uint(intId)
+				projectType, _ = models.FindProjectTypeByID(db.DB, uintId)
+				chronoWorks, err = models.FindChronoWorksByProjectTypeID(db.DB, projectType.ID)
+				if err != nil {
+					break
+				}
+				if len(chronoWorks) > 0 {
+					isExist = true
+				}
+				var modal *tview.Modal
+				if isExist {
+					modal = tview.NewModal().
+						SetText("Can't delete this project. Exist work that use this project.").
+						AddButtons([]string{"Close"}).
+						SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+							tui.DeleteModal()
+							tui.SetFocus("projectTable")
+							p.Table.ScrollToBeginning().Select(row, 0)
+						})
+				} else {
+					modal = tview.NewModal().
+						SetText("Are you sure you want to delete this project?").
+						AddButtons([]string{"Yes", "No"}).
+						SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+							if buttonLabel == "Yes" {
 								if err := projectType.DeleteProjectType(db.DB); err != nil {
 									log.Println(err)
 								}
 								p.RestoreTable()
 							}
-						}
-						tui.DeleteModal()
-						tui.SetFocus("projectTable")
-						p.Table.ScrollToBeginning().Select(1, 0)
-					})
+							tui.DeleteModal()
+							tui.SetFocus("projectTable")
+							p.Table.ScrollToBeginning().Select(1, 0)
+						})
+				}
 				tui.SetModal(modal)
 				tui.SetFocus("modal")
 			}
