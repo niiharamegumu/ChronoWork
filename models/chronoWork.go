@@ -112,6 +112,17 @@ func FindTrackingChronoWorks(db *gorm.DB) ([]ChronoWork, error) {
 	return chronoWorks, nil
 }
 
+func FindChronoWorksByProjectTypeID(db *gorm.DB, projectTypeID uint) ([]ChronoWork, error) {
+	var chronoWorks []ChronoWork
+	result := db.
+		Preload("ProjectType").
+		Find(&chronoWorks, "project_type_id = ?", projectTypeID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return chronoWorks, nil
+}
+
 func DeleteChronoWork(db *gorm.DB, id uint) error {
 	result := db.Unscoped().Delete(&ChronoWork{}, id)
 	if result.Error != nil {
