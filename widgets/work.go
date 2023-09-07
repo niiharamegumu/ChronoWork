@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
@@ -23,7 +24,7 @@ var (
 		"Tags",
 		"TRACKING",
 	}
-	dateSeparateRow = 2
+	dateSeparateRow = 3
 )
 
 type Work struct {
@@ -211,13 +212,16 @@ func (w *Work) ReStoreTable(startTime, endTime time.Time) error {
 func (w *Work) setHeader() {
 	for i, header := range workHeader {
 		tableCell := tview.NewTableCell(header).
-			SetAlign(tview.AlignCenter).
 			SetTextColor(tcell.ColorWhite).
 			SetBackgroundColor(tcell.ColorPurple).
 			SetSelectable(false)
-
 		if header != "ID" {
 			tableCell.SetExpansion(1)
+		}
+		if header == "TotalTime" || header == "TRACKING" {
+			tableCell.SetAlign(tview.AlignCenter)
+		} else {
+			tableCell.SetAlign(tview.AlignLeft)
 		}
 
 		w.Table.SetCell(0, i, tableCell)
@@ -257,22 +261,40 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 				chronoWorks = append(chronoWorks, activeTrackingChronoWork)
 			}
 		}
+		sort.Slice(chronoWorks, func(i, j int) bool {
+			return chronoWorks[i].CreatedAt.After(chronoWorks[j].CreatedAt)
+		})
 	}
 
-	date := time.Now().Format("2006/01/02")
+	groupedChronoWorks := map[string][]models.ChronoWork{}
+	for _, work := range chronoWorks {
+		dateStr := work.CreatedAt.Format("2006/01/02")
+		groupedChronoWorks[dateStr] = append(groupedChronoWorks[dateStr], work)
+	}
+
+	today := time.Now()
 	rowCount := 1
-	for _, chronoWork := range chronoWorks {
-		targetDate := chronoWork.CreatedAt.Format("2006/01/02")
-		if date != targetDate {
+	for dateStr, chronoWorks := range groupedChronoWorks {
+		totalSecondsByDay := 0
+		date, err := time.Parse("2006/01/02", dateStr)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		if date.Year() != today.Year() || date.Month() != today.Month() || date.Day() != today.Day() {
 			for i := 0; i < dateSeparateRow; i++ {
 				w.insertBlankRow(rowCount)
 				rowCount++
 			}
-			date = targetDate
-			w.insertDateRow(rowCount, date, chronoWork.CreatedAt.Weekday())
+			w.insertDateRow(rowCount, date.Format("2006/01/02"), date.Weekday())
 			rowCount++
 		}
-		w.configureTable(rowCount, chronoWork)
+		for _, chronoWork := range chronoWorks {
+			w.configureTable(rowCount, chronoWork)
+			rowCount++
+			totalSecondsByDay += chronoWork.TotalSeconds
+		}
+		w.insertTotalSecondsByDayRow(rowCount, totalSecondsByDay, len(chronoWorks))
 		rowCount++
 	}
 
@@ -290,6 +312,34 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 func (w *Work) insertBlankRow(rowCount int) {
 	for i := 0; i < len(workHeader); i++ {
 		w.Table.SetCell(rowCount, i, tview.NewTableCell("").SetSelectable(false))
+	}
+}
+
+func (w *Work) insertTotalSecondsByDayRow(rowCount int, totalSecondsByDay int, count int) {
+	w.Table.SetCell(rowCount, 0,
+		tview.NewTableCell("Total").
+			SetAlign(tview.AlignLeft).
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorRebeccaPurple).
+			SetSelectable(false))
+	w.Table.SetCell(rowCount, 1,
+		tview.NewTableCell(pkg.FormatTime(totalSecondsByDay)).
+			SetAlign(tview.AlignCenter).
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorRebeccaPurple).
+			SetSelectable(false))
+	w.Table.SetCell(rowCount, 2,
+		tview.NewTableCell(fmt.Sprintf("count:%d", count)).
+			SetAlign(tview.AlignLeft).
+			SetTextColor(tcell.ColorWhite).
+			SetBackgroundColor(tcell.ColorRebeccaPurple).
+			SetSelectable(false))
+
+	for i := 3; i < len(workHeader); i++ {
+		w.Table.SetCell(rowCount, i,
+			tview.NewTableCell("").
+				SetBackgroundColor(tcell.ColorRebeccaPurple).
+				SetSelectable(false))
 	}
 }
 
@@ -330,7 +380,7 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	w.Table.SetCell(row, 0,
 		tview.
 			NewTableCell(fmt.Sprintf("%d", chronoWork.ID)).
-			SetAlign(tview.AlignCenter).
+			SetAlign(tview.AlignLeft).
 			SetExpansion(0))
 	// TotalTime
 	w.Table.SetCell(row, 1,
@@ -342,19 +392,19 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	w.Table.SetCell(row, 2,
 		tview.
 			NewTableCell(chronoWork.Title).
-			SetAlign(tview.AlignCenter).
+			SetAlign(tview.AlignLeft).
 			SetExpansion(1))
 	// Project
 	w.Table.SetCell(row, 3,
 		tview.
 			NewTableCell(chronoWork.ProjectType.Name).
-			SetAlign(tview.AlignCenter).
+			SetAlign(tview.AlignLeft).
 			SetExpansion(1))
 	// Tags
 	w.Table.SetCell(row, 4,
 		tview.
 			NewTableCell(chronoWork.Tag.Name).
-			SetAlign(tview.AlignCenter).
+			SetAlign(tview.AlignLeft).
 			SetExpansion(1))
 	// TRACKING
 	trackingCell := tview.NewTableCell("").SetAlign(tview.AlignCenter).SetExpansion(0)
