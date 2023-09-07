@@ -159,16 +159,7 @@ func (p *Project) StoreProject() error {
 }
 
 func (p *Project) UpdateProject(project *models.ProjectType) {
-	var chronoWorks []models.ChronoWork
-	var err error
-	chronoWorks, err = models.FindChronoWorksByProjectTypeID(db.DB, project.ID)
-	if err != nil {
-		return
-	}
-	if len(chronoWorks) > 0 {
-		return
-	}
-
+	// TODO: It is necessary to determine the conditions under which it can be updated because it will affect the tasks connected to it.
 	projectName := p.Form.GetFormItemByLabel("Project Name : ").(*tview.InputField).GetText()
 	projectTags := p.ReadOnlyForm.GetFormItemByLabel("Selected Tags").(*tview.TextArea).GetText()
 	if projectName == "" {
