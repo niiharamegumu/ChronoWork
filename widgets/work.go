@@ -271,10 +271,16 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 		dateStr := work.CreatedAt.Format("2006/01/02")
 		groupedChronoWorks[dateStr] = append(groupedChronoWorks[dateStr], work)
 	}
+	sortedKeys := make([]string, 0, len(groupedChronoWorks))
+	for key := range groupedChronoWorks {
+		sortedKeys = append(sortedKeys, key)
+	}
+	sort.Sort(sort.Reverse(sort.StringSlice(sortedKeys)))
 
 	today := time.Now()
 	rowCount := 1
-	for dateStr, chronoWorks := range groupedChronoWorks {
+	for _, dateStr := range sortedKeys {
+		chronoWorks := groupedChronoWorks[dateStr]
 		totalSecondsByDay := 0
 		date, err := time.Parse("2006/01/02", dateStr)
 		if err != nil {
