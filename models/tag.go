@@ -9,6 +9,24 @@ type Tag struct {
 	Name string `gorm:"size:255; required; unique" json:"name"`
 }
 
+func FindALlTags(db *gorm.DB) []Tag {
+	var tags []Tag
+	result := db.Find(&tags).Order("id desc")
+	if result.Error != nil {
+		return []Tag{}
+	}
+	return tags
+}
+
+func FindByTagId(db *gorm.DB, id uint) (Tag, error) {
+	var tag Tag
+	result := db.First(&tag, id)
+	if result.Error != nil {
+		return Tag{}, result.Error
+	}
+	return tag, nil
+}
+
 func AllTagNames(db *gorm.DB) []string {
 	var tags []Tag
 	result := db.Find(&tags)

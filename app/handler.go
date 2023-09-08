@@ -53,6 +53,15 @@ func InitialSetting() error {
 	project.GenerateInitProject(tui)
 	project.TableCapture(tui)
 	project.FormCapture(tui)
+	tagPage := widgets.NewTag()
+	tagPage.GenerateInitTag(tui)
+	tui.SetMainPage("tag", tagPage.Layout, false)
+	if err = tui.SetWidget("tagForm", tagPage.Form); err != nil {
+		return err
+	}
+	if err = tui.SetWidget("tagTable", tagPage.Table); err != nil {
+		return err
+	}
 
 	menu := widgets.NewMenu()
 	menu = menu.GenerateInitMenu(tui, work, setting, project)
