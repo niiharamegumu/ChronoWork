@@ -28,8 +28,13 @@ func (m *Menu) GenerateInitMenu(tui *service.TUI, work *Work, setting *Setting, 
 		tui.SetFocus("mainWorkContent")
 	})
 	m.AddListItem("Projects", 'p', func() {
+		project.RestoreTable()
 		tui.ChangeToPage("project")
 		tui.SetFocus("projectTable")
+	})
+	m.AddListItem("Tags", 't', func() {
+		tui.ChangeToPage("tag")
+		tui.SetFocus("tagTable")
 	})
 	m.AddListItem("Setting", 's', func() {
 		setting.ReStore(tui)
