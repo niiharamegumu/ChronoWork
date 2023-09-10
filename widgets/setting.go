@@ -31,7 +31,7 @@ func (s *Setting) GenerateInitSetting(tui *service.TUI) {
 	}
 	s.Form.AddInputField("Show Relative Date(0:Today Only) : ", fmt.Sprintln(setting.RelativeDate), 20, nil, nil).
 		AddButton("Save", func() {
-			s.Update()
+			s.update()
 			s.ReStore(tui)
 			tui.SetFocus("menu")
 		}).
@@ -46,7 +46,7 @@ func (s *Setting) ReStore(tui *service.TUI) {
 	s.GenerateInitSetting(tui)
 }
 
-func (s *Setting) Update() {
+func (s *Setting) update() {
 	relativeDate := s.Form.GetFormItemByLabel("Show Relative Date(0:Today Only) : ").(*tview.InputField).GetText()
 
 	var dateInt uint64
