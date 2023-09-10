@@ -16,31 +16,31 @@ func NewMenu() *Menu {
 	}
 }
 
-func (m *Menu) AddListItem(text string, shortcut rune, selected func()) *Menu {
+func (m *Menu) addListItem(text string, shortcut rune, selected func()) *Menu {
 	m.List.AddItem(text, "", shortcut, selected)
 	return m
 }
 
 func (m *Menu) GenerateInitMenu(tui *service.TUI, work *Work, setting *Setting, project *Project) *Menu {
-	m.AddListItem("Works", 'w', func() {
+	m.addListItem("Works", 'w', func() {
 		work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
 		tui.ChangeToPage("work")
 		tui.SetFocus("mainWorkContent")
 	})
-	m.AddListItem("Projects", 'p', func() {
+	m.addListItem("Projects", 'p', func() {
 		project.RestoreTable()
 		tui.ChangeToPage("project")
 		tui.SetFocus("projectTable")
 	})
-	m.AddListItem("Tags", 't', func() {
+	m.addListItem("Tags", 't', func() {
 		tui.ChangeToPage("tag")
 		tui.SetFocus("tagTable")
 	})
-	m.AddListItem("Setting", 's', func() {
+	m.addListItem("Setting", 's', func() {
 		setting.ReStore(tui)
 		tui.ChangeToPage("setting")
 		tui.SetFocus("settingForm")
 	})
-	m.AddListItem("Quit", 'q', tui.Quit)
+	m.addListItem("Quit", 'q', tui.Quit)
 	return m
 }

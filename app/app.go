@@ -84,8 +84,6 @@ func initialSetting() error {
 		return err
 	}
 	project.GenerateInitProject(tui)
-	project.TableCapture(tui)
-	project.FormCapture(tui)
 	tagPage := widgets.NewTag()
 	tagPage.GenerateInitTag(tui)
 	tui.SetMainPage("tag", tagPage.Layout, false)

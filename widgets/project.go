@@ -52,16 +52,24 @@ func NewProject() *Project {
 }
 
 func (p *Project) GenerateInitProject(tui *service.TUI) *Project {
-	p.SetStoreProjectForm(tui)
+	p.setStoreProjectForm(tui)
 	p.RestoreTable()
 
 	p.Layout.AddItem(p.Form, 0, 0, 1, 1, 0, 0, false)
 	p.Layout.AddItem(p.ReadOnlyForm, 0, 1, 1, 1, 0, 0, false)
 	p.Layout.AddItem(p.Table, 1, 0, 1, 2, 0, 0, true)
+
+	p.tableCapture(tui)
+	p.formCapture(tui)
 	return p
 }
 
-func (p *Project) SetStoreProjectForm(tui *service.TUI) {
+func (p *Project) RestoreTable() {
+	p.Table.Clear()
+	p.setTable()
+}
+
+func (p *Project) setStoreProjectForm(tui *service.TUI) {
 	p.Form.Clear(true)
 	p.ReadOnlyForm.Clear(true)
 
@@ -85,7 +93,7 @@ func (p *Project) SetStoreProjectForm(tui *service.TUI) {
 			link.SetText(strings.Join(linkTagNames, ","), false)
 		}).
 		AddButton("Save", func() {
-			p.StoreProject()
+			p.storeProject()
 			tui.SetFocus("projectTable")
 		}).
 		AddButton("Cancel", func() {
@@ -93,7 +101,7 @@ func (p *Project) SetStoreProjectForm(tui *service.TUI) {
 		})
 }
 
-func (p *Project) SetUpdateProjectForm(tui *service.TUI, project *models.ProjectType) {
+func (p *Project) setUpdateProjectForm(tui *service.TUI, project *models.ProjectType) {
 	p.Form.Clear(true)
 	p.ReadOnlyForm.Clear(true)
 
@@ -117,7 +125,7 @@ func (p *Project) SetUpdateProjectForm(tui *service.TUI, project *models.Project
 			link.SetText(strings.Join(linkTagNames, ","), false)
 		}).
 		AddButton("Update", func() {
-			p.UpdateProject(project)
+			p.updateProject(project)
 			tui.SetFocus("projectTable")
 		}).
 		AddButton("Cancel", func() {
@@ -126,7 +134,7 @@ func (p *Project) SetUpdateProjectForm(tui *service.TUI, project *models.Project
 	p.ReadOnlyForm.GetFormItemByLabel("Selected Tags").(*tview.TextArea).SetText(strings.Join(project.GetTagNames(), ","), false)
 }
 
-func (p *Project) FormCapture(tui *service.TUI) {
+func (p *Project) formCapture(tui *service.TUI) {
 	p.Form.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyCtrlB:
@@ -136,7 +144,7 @@ func (p *Project) FormCapture(tui *service.TUI) {
 	})
 }
 
-func (p *Project) StoreProject() error {
+func (p *Project) storeProject() error {
 	projectName := p.Form.GetFormItemByLabel("Project Name : ").(*tview.InputField).GetText()
 	projectTags := p.ReadOnlyForm.GetFormItemByLabel("Selected Tags").(*tview.TextArea).GetText()
 	if projectName == "" {
@@ -158,7 +166,7 @@ func (p *Project) StoreProject() error {
 	return nil
 }
 
-func (p *Project) UpdateProject(project *models.ProjectType) {
+func (p *Project) updateProject(project *models.ProjectType) {
 	// TODO: It is necessary to determine the conditions under which it can be updated because it will affect the tasks connected to it.
 	projectName := p.Form.GetFormItemByLabel("Project Name : ").(*tview.InputField).GetText()
 	projectTags := p.ReadOnlyForm.GetFormItemByLabel("Selected Tags").(*tview.TextArea).GetText()
@@ -178,12 +186,12 @@ func (p *Project) UpdateProject(project *models.ProjectType) {
 	p.RestoreTable()
 }
 
-func (p *Project) SetTable() {
-	p.SetTableHeader()
-	p.SetTableBody()
+func (p *Project) setTable() {
+	p.setTableHeader()
+	p.setTableBody()
 }
 
-func (p *Project) SetTableHeader() {
+func (p *Project) setTableHeader() {
 	for i, header := range projectHeader {
 		tableCell := tview.NewTableCell(header).
 			SetAlign(tview.AlignCenter).
@@ -195,7 +203,7 @@ func (p *Project) SetTableHeader() {
 	}
 }
 
-func (p *Project) SetTableBody() {
+func (p *Project) setTableBody() {
 	projects := models.AllProjectTypeWithTags(db.DB)
 	for i, project := range projects {
 		p.Table.SetCell(i+1, 0,
@@ -214,19 +222,14 @@ func (p *Project) SetTableBody() {
 	}
 }
 
-func (p *Project) RestoreTable() {
-	p.Table.Clear()
-	p.SetTable()
-}
-
-func (p *Project) TableCapture(tui *service.TUI) {
+func (p *Project) tableCapture(tui *service.TUI) {
 	p.Table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 'a':
 				// store project
-				p.SetStoreProjectForm(tui)
+				p.setStoreProjectForm(tui)
 				tui.SetFocus("projectForm")
 			case 'u':
 				// update project
@@ -243,7 +246,7 @@ func (p *Project) TableCapture(tui *service.TUI) {
 						log.Println(err)
 						break
 					}
-					p.SetUpdateProjectForm(tui, project)
+					p.setUpdateProjectForm(tui, project)
 					tui.SetFocus("projectForm")
 				}
 			case 'd':
