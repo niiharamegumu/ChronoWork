@@ -1,8 +1,8 @@
 package widgets
 
 import (
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
+	"github.com/niiharamegumu/ChronoWork/util/timeutil"
 	"github.com/rivo/tview"
 )
 
@@ -23,7 +23,7 @@ func (m *Menu) addListItem(text string, shortcut rune, selected func()) *Menu {
 
 func (m *Menu) GenerateInitMenu(tui *service.TUI, work *Work, setting *Setting, project *Project) *Menu {
 	m.addListItem("Works", 'w', func() {
-		work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
+		work.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime())
 		tui.ChangeToPage("work")
 		tui.SetFocus("mainWorkContent")
 	})

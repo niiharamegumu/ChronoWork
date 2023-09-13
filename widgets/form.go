@@ -8,8 +8,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
+	"github.com/niiharamegumu/ChronoWork/util/timeutil"
 	"github.com/rivo/tview"
 )
 
@@ -61,7 +61,7 @@ func (f *Form) ConfigureStoreForm(tui *service.TUI, work *Work) {
 				log.Println(err)
 				return
 			}
-			if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
+			if err := work.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
 				log.Println(err)
 				return
 			}
@@ -110,7 +110,7 @@ func (f *Form) configureUpdateForm(tui *service.TUI, work *Work, chronoWork *mod
 			log.Println(err)
 			return
 		}
-		if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
+		if err := work.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
 			log.Println(err)
 			return
 		}
@@ -134,7 +134,7 @@ func (f *Form) configureTimerForm(tui *service.TUI, work *Work, chronoWork *mode
 				log.Println(err)
 				return
 			}
-			if err := work.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
+			if err := work.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
 				log.Println(err)
 				return
 			}

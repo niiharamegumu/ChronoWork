@@ -10,8 +10,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
+	"github.com/niiharamegumu/ChronoWork/util/timeutil"
 	"github.com/rivo/tview"
 )
 
@@ -42,7 +42,7 @@ func NewWork() *Work {
 
 func (w *Work) GenerateInitWork(tui *service.TUI) (*Work, error) {
 	w.setHeader()
-	if err := w.setBody(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
+	if err := w.setBody(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
 		return nil, err
 	}
 	return w, nil
@@ -123,7 +123,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 								if err := models.DeleteChronoWork(db.DB, uintId); err != nil {
 									log.Println(err)
 								}
-								if err := w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime()); err != nil {
+								if err := w.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
 									log.Println(err)
 								}
 							}
@@ -158,7 +158,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 				// if tracking work exists, stop tracking
 				if len(chronoWorks) > 0 {
 					for _, cw := range chronoWorks {
-						if cw.ID != chronoWork.ID || !pkg.IsToday(cw.CreatedAt) {
+						if cw.ID != chronoWork.ID || !timeutil.IsToday(cw.CreatedAt) {
 							if err := cw.StopTrackingChronoWorks(db.DB); err != nil {
 								log.Println(err)
 								break
@@ -166,7 +166,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 						}
 					}
 				}
-				if pkg.IsToday(chronoWork.CreatedAt) {
+				if timeutil.IsToday(chronoWork.CreatedAt) {
 					// target tracking work
 					if chronoWork.IsTracking {
 						chronoWork.StopTrackingChronoWorks(db.DB)
@@ -178,7 +178,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 						timer.SetCalculateSeconds(tui)
 						timer.SetTimerText(chronoWork)
 					}
-					w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
+					w.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime())
 					w.Table.Select(row, 0)
 				} else {
 					// chronowork copy
@@ -191,7 +191,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					timer.SetStartTimer(newChronoWork.StartTime)
 					timer.SetCalculateSeconds(tui)
 					timer.SetTimerText(newChronoWork)
-					w.ReStoreTable(pkg.RelativeStartTime(), pkg.TodayEndTime())
+					w.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime())
 					w.Table.Select(1, 0)
 				}
 			}
@@ -329,7 +329,7 @@ func (w *Work) insertTotalSecondsByDayRow(rowCount int, totalSecondsByDay int, c
 			SetBackgroundColor(tcell.ColorRebeccaPurple).
 			SetSelectable(false))
 	w.Table.SetCell(rowCount, 1,
-		tview.NewTableCell(pkg.FormatTime(totalSecondsByDay)).
+		tview.NewTableCell(timeutil.FormatTime(totalSecondsByDay)).
 			SetAlign(tview.AlignCenter).
 			SetTextColor(tcell.ColorWhite).
 			SetBackgroundColor(tcell.ColorRebeccaPurple).
@@ -391,7 +391,7 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	// TotalTime
 	w.Table.SetCell(row, 1,
 		tview.
-			NewTableCell(pkg.FormatTime(chronoWork.TotalSeconds)).
+			NewTableCell(timeutil.FormatTime(chronoWork.TotalSeconds)).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(0))
 	// Title
@@ -416,7 +416,7 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	trackingCell := tview.NewTableCell("").SetAlign(tview.AlignCenter).SetExpansion(0)
 	setText := "Yes"
 	setColor := tcell.ColorGreen
-	if pkg.IsToday(chronoWork.CreatedAt) {
+	if timeutil.IsToday(chronoWork.CreatedAt) {
 		if !chronoWork.IsTracking {
 			setText = "No"
 			setColor = tcell.ColorRed
