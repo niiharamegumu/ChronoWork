@@ -7,8 +7,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
+	"github.com/niiharamegumu/ChronoWork/util/timeutil"
 	"github.com/rivo/tview"
 )
 
@@ -93,7 +93,7 @@ func (t *Timer) SetCalculateSeconds(tui *service.TUI) {
 			default:
 				seconds := int(time.Since(t.StartTime).Seconds())
 				tui.App.QueueUpdateDraw(func() {
-					t.Time.SetText(pkg.FormatTime(seconds))
+					t.Time.SetText(timeutil.FormatTime(seconds))
 				})
 				time.Sleep(time.Second)
 			}

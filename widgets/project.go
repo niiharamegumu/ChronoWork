@@ -9,8 +9,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/ChronoWork/db"
 	"github.com/niiharamegumu/ChronoWork/models"
-	"github.com/niiharamegumu/ChronoWork/pkg"
 	"github.com/niiharamegumu/ChronoWork/service"
+	"github.com/niiharamegumu/ChronoWork/util/strutil"
 	"github.com/rivo/tview"
 )
 
@@ -89,7 +89,7 @@ func (p *Project) setStoreProjectForm(tui *service.TUI) {
 			}
 			linkTagNames := strings.Split(link.GetText(), ",")
 			linkTagNames = append(linkTagNames, option)
-			linkTagNames = pkg.RemoveDuplicates(linkTagNames)
+			linkTagNames = strutil.RemoveDuplicates(linkTagNames)
 			link.SetText(strings.Join(linkTagNames, ","), false)
 		}).
 		AddButton("Save", func() {
@@ -121,7 +121,7 @@ func (p *Project) setUpdateProjectForm(tui *service.TUI, project *models.Project
 			}
 			linkTagNames := strings.Split(link.GetText(), ",")
 			linkTagNames = append(linkTagNames, option)
-			linkTagNames = pkg.RemoveDuplicates(linkTagNames)
+			linkTagNames = strutil.RemoveDuplicates(linkTagNames)
 			link.SetText(strings.Join(linkTagNames, ","), false)
 		}).
 		AddButton("Update", func() {

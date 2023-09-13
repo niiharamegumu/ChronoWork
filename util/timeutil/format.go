@@ -1,4 +1,4 @@
-package pkg
+package timeutil
 
 import (
 	"fmt"
@@ -38,18 +38,4 @@ func RelativeStartTime() time.Time {
 func IsToday(t time.Time) bool {
 	now := time.Now()
 	return t.Year() == now.Year() && t.Month() == now.Month() && t.Day() == now.Day()
-}
-
-func RemoveDuplicates(input []string) []string {
-	encountered := map[string]int{}
-	result := []string{}
-	for _, v := range input {
-		encountered[v]++
-	}
-	for _, v := range input {
-		if encountered[v] == 1 {
-			result = append(result, v)
-		}
-	}
-	return result
 }
