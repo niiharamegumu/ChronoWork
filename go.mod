@@ -1,4 +1,4 @@
-module github.com/niiharamegumu/ChronoWork
+module chronowork
 
 go 1.21
 

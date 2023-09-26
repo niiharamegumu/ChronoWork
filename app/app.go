@@ -1,15 +1,15 @@
 package app
 
 import (
+	"chronowork/db"
+	"chronowork/service"
+	"chronowork/widgets"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/niiharamegumu/ChronoWork/db"
-	"github.com/niiharamegumu/ChronoWork/service"
-	"github.com/niiharamegumu/ChronoWork/widgets"
 	"github.com/rivo/tview"
 )
 

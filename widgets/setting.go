@@ -1,14 +1,14 @@
 package widgets
 
 import (
+	"chronowork/db"
+	"chronowork/models"
+	"chronowork/service"
 	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/niiharamegumu/ChronoWork/db"
-	"github.com/niiharamegumu/ChronoWork/models"
-	"github.com/niiharamegumu/ChronoWork/service"
 	"github.com/rivo/tview"
 )
 
