@@ -1,8 +1,6 @@
 package main
 
-import (
-	"github.com/niiharamegumu/ChronoWork/app"
-)
+import "chronowork/app"
 
 func main() {
 	app.Execute()

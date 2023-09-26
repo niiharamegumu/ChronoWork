@@ -1,11 +1,10 @@
 package timeutil
 
 import (
+	"chronowork/db"
+	"chronowork/models"
 	"fmt"
 	"time"
-
-	"github.com/niiharamegumu/ChronoWork/db"
-	"github.com/niiharamegumu/ChronoWork/models"
 )
 
 func FormatTime(seconds int) string {
