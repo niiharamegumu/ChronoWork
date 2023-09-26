@@ -1,10 +1,10 @@
 package db
 
 import (
-	"chronowork/models"
 	"fmt"
 	"time"
-
+	
+	"github.com/niiharamegumu/chronowork/models"
 	"gorm.io/gorm"
 )
 

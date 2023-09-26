@@ -1,13 +1,13 @@
 package widgets
 
 import (
-	"chronowork/db"
-	"chronowork/models"
-	"chronowork/service"
-	"chronowork/util/timeutil"
 	"context"
 	"time"
-
+	
+	"github.com/niiharamegumu/chronowork/db"
+	"github.com/niiharamegumu/chronowork/models"
+	"github.com/niiharamegumu/chronowork/service"
+	"github.com/niiharamegumu/chronowork/util/timeutil"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )

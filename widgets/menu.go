@@ -1,9 +1,8 @@
 package widgets
 
 import (
-	"chronowork/service"
-	"chronowork/util/timeutil"
-
+	"github.com/niiharamegumu/chronowork/service"
+	"github.com/niiharamegumu/chronowork/util/timeutil"
 	"github.com/rivo/tview"
 )
 

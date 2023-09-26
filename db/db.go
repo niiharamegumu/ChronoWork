@@ -1,11 +1,11 @@
 package db
 
 import (
-	"chronowork/models"
 	"fmt"
 	"log"
 	"os"
-
+	
+	"github.com/niiharamegumu/chronowork/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
