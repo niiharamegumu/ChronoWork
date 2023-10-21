@@ -247,6 +247,11 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 	var chronoWork models.ChronoWork
 	var chronoWorks []models.ChronoWork
 	var err error
+	var setting models.Setting
+	if err := setting.GetSetting(db.DB); err != nil {
+		log.Println(err)
+		return err
+	}
 
 	chronoWorks, err = chronoWork.FindInRangeByTime(db.DB, startTime, endTime)
 	if err != nil {
@@ -311,11 +316,11 @@ func (w *Work) setBody(startTime, endTime time.Time) error {
 			rowCount++
 		}
 		for _, chronoWork := range chronoWorks {
-			w.configureTable(rowCount, chronoWork)
+			w.configureTable(rowCount, chronoWork, setting)
 			rowCount++
 			totalSecondsByDay += chronoWork.TotalSeconds
 		}
-		w.insertTotalSecondsByDayRow(rowCount, totalSecondsByDay, len(chronoWorks))
+		w.insertTotalSecondsByDayRow(rowCount, totalSecondsByDay, len(chronoWorks), setting)
 		rowCount++
 	}
 
@@ -336,7 +341,7 @@ func (w *Work) insertBlankRow(rowCount int) {
 	}
 }
 
-func (w *Work) insertTotalSecondsByDayRow(rowCount int, totalSecondsByDay int, count int) {
+func (w *Work) insertTotalSecondsByDayRow(rowCount, totalSecondsByDay, count int, setting models.Setting) {
 	w.Table.SetCell(rowCount, 0,
 		tview.NewTableCell("Total").
 			SetAlign(tview.AlignLeft).
@@ -344,7 +349,7 @@ func (w *Work) insertTotalSecondsByDayRow(rowCount int, totalSecondsByDay int, c
 			SetBackgroundColor(tcell.ColorRebeccaPurple).
 			SetSelectable(false))
 	w.Table.SetCell(rowCount, 1,
-		tview.NewTableCell(timeutil.FormatTime(totalSecondsByDay)).
+		tview.NewTableCell(timeutil.FormatWithPersonDay(totalSecondsByDay, setting.PersonDay, setting.DisplayAsPersonDay)).
 			SetAlign(tview.AlignCenter).
 			SetTextColor(tcell.ColorWhite).
 			SetBackgroundColor(tcell.ColorRebeccaPurple).
@@ -396,7 +401,7 @@ func (w *Work) goToBottom() {
 	w.Table.ScrollToEnd().Select(w.Table.GetRowCount()-1, 0)
 }
 
-func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
+func (w *Work) configureTable(row int, chronoWork models.ChronoWork, setting models.Setting) {
 	// ID
 	w.Table.SetCell(row, 0,
 		tview.
@@ -406,7 +411,7 @@ func (w *Work) configureTable(row int, chronoWork models.ChronoWork) {
 	// TotalTime
 	w.Table.SetCell(row, 1,
 		tview.
-			NewTableCell(timeutil.FormatTime(chronoWork.TotalSeconds)).
+			NewTableCell(timeutil.FormatWithPersonDay(chronoWork.TotalSeconds, setting.PersonDay, setting.DisplayAsPersonDay)).
 			SetAlign(tview.AlignCenter).
 			SetExpansion(0))
 	// Title
