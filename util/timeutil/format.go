@@ -18,6 +18,15 @@ func FormatTime(seconds int) string {
 	}
 }
 
+func FormatWithPersonDay(seconds int, personDay uint, display bool) string {
+	ft := FormatTime(seconds)
+	if personDay < 1 || !display {
+		return ft
+	}
+	hour := float64(seconds) / 3600
+	return fmt.Sprintf("%v(%.2f)", ft, hour/float64(personDay))
+}
+
 func TodayEndTime() time.Time {
 	now := time.Now()
 	return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, time.Local)
