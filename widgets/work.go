@@ -6,13 +6,14 @@ import (
 	"sort"
 	"strconv"
 	"time"
-	
+
+	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/chronowork/db"
 	"github.com/niiharamegumu/chronowork/models"
 	"github.com/niiharamegumu/chronowork/service"
 	"github.com/niiharamegumu/chronowork/util/timeutil"
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.design/x/clipboard"
 )
 
 var (
@@ -134,6 +135,20 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					})
 				tui.SetModal(modal)
 				tui.SetFocus("modal")
+			case 'c':
+				// copy work title
+				row, _ := w.Table.GetSelection()
+				cell := w.Table.GetCell(row, 2)
+				if cell.Text == "" {
+					break
+				}
+				title := cell.Text
+				err := clipboard.Init()
+				if err != nil {
+					log.Println(err)
+					break
+				}
+				clipboard.Write(clipboard.FmtText, []byte(title))
 			}
 		case tcell.KeyEnter:
 			// toggle tracking
