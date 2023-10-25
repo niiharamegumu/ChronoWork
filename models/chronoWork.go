@@ -91,6 +91,23 @@ func (c *ChronoWork) UpdateChronoWorkTotalSeconds(db *gorm.DB, totalSeconds int)
 	return nil
 }
 
+func GetChronoWorks(db *gorm.DB, orderField string, limit int) ([]ChronoWork, error) {
+	var chronoWorks []ChronoWork
+	query := db.Preload("ProjectType").Preload("Tag")
+
+	if orderField != "" {
+		query = query.Order(orderField)
+	}
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+
+	if err := query.Find(&chronoWorks).Error; err != nil {
+		return nil, err
+	}
+	return chronoWorks, nil
+}
+
 func FindChronoWork(db *gorm.DB, id uint) (ChronoWork, error) {
 	var chronoWork ChronoWork
 	result := db.Preload("ProjectType").Preload("Tag").First(&chronoWork, id)

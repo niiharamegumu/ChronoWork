@@ -36,6 +36,10 @@ func (m *Menu) GenerateInitMenu(tui *service.TUI, work *Work, setting *Setting, 
 		tui.ChangeToPage("tag")
 		tui.SetFocus("tagTable")
 	})
+	m.addListItem("Export", 'e', func() {
+		tui.ChangeToPage("export")
+		tui.SetFocus("exportForm")
+	})
 	m.addListItem("Setting", 's', func() {
 		setting.ReStore(tui)
 		tui.ChangeToPage("setting")
