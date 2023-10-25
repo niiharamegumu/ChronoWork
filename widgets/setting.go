@@ -32,6 +32,7 @@ func (s *Setting) GenerateInitSetting(tui *service.TUI) {
 	s.Form.AddInputField("Show Relative Date(0:Today Only) : ", fmt.Sprint(setting.RelativeDate), 20, nil, nil).
 		AddInputField("Person Day : ", fmt.Sprint(setting.PersonDay), 20, nil, nil).
 		AddCheckbox("Display As Person Day : ", setting.DisplayAsPersonDay, nil).
+		AddInputField("Download Path : ", setting.DownloadPath, 60, nil, nil).
 		AddButton("Save", func() {
 			s.update()
 			s.ReStore(tui)
@@ -52,6 +53,7 @@ func (s *Setting) update() {
 	relativeDate := s.Form.GetFormItemByLabel("Show Relative Date(0:Today Only) : ").(*tview.InputField).GetText()
 	personDay := s.Form.GetFormItemByLabel("Person Day : ").(*tview.InputField).GetText()
 	displayAsPersonDay := s.Form.GetFormItemByLabel("Display As Person Day : ").(*tview.Checkbox).IsChecked()
+	downloadPath := s.Form.GetFormItemByLabel("Download Path : ").(*tview.InputField).GetText()
 
 	var dateInt, personDayInt int
 	var err error
@@ -73,6 +75,7 @@ func (s *Setting) update() {
 		RelativeDate:       uint(dateInt),
 		PersonDay:          uint(personDayInt),
 		DisplayAsPersonDay: displayAsPersonDay,
+		DownloadPath:       downloadPath,
 	}
 	if err = setting.UpdateSetting(db.DB, new); err != nil {
 		log.Println(err)

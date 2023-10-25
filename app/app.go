@@ -5,11 +5,11 @@ import (
 	"log"
 	"os"
 	"time"
-	
+
+	"github.com/gdamore/tcell/v2"
 	"github.com/niiharamegumu/chronowork/db"
 	"github.com/niiharamegumu/chronowork/service"
 	"github.com/niiharamegumu/chronowork/widgets"
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -69,12 +69,14 @@ func initialSetting() error {
 	form = form.GenerateInitForm(tui, work)
 
 	// add page
+	// setting page
 	setting := widgets.NewSetting()
 	setting.GenerateInitSetting(tui)
 	tui.SetMainPage("setting", setting.Form, false)
 	if err = tui.SetWidget("settingForm", setting.Form); err != nil {
 		return err
 	}
+	// project page
 	project := widgets.NewProject()
 	tui.SetMainPage("project", project.Layout, false)
 	if err = tui.SetWidget("projectForm", project.Form); err != nil {
@@ -84,6 +86,7 @@ func initialSetting() error {
 		return err
 	}
 	project.GenerateInitProject(tui)
+	// tag page
 	tagPage := widgets.NewTag()
 	tagPage.GenerateInitTag(tui)
 	tui.SetMainPage("tag", tagPage.Layout, false)
@@ -91,6 +94,13 @@ func initialSetting() error {
 		return err
 	}
 	if err = tui.SetWidget("tagTable", tagPage.Table); err != nil {
+		return err
+	}
+	// export page
+	export := widgets.NewExport()
+	export.GenerateInitExport(tui)
+	tui.SetMainPage("export", export.Form, false)
+	if err = tui.SetWidget("exportForm", export.Form); err != nil {
 		return err
 	}
 
