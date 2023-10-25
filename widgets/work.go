@@ -99,9 +99,6 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 						log.Println(err)
 						break
 					}
-					if chronoWork.TotalSeconds == 0 {
-						break
-					}
 					form.Form.Clear(true)
 					form.configureTimerForm(tui, w, &chronoWork)
 					tui.SetFocus("mainWorkForm")
