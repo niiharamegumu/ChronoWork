@@ -82,7 +82,7 @@ func (e *Export) export() {
 	w := csv.NewWriter(f)
 	defer w.Flush()
 
-	header := []string{"ID", "ProjectName", "TagName", "Date", "Time"}
+	header := []string{"ID", "Title", "ProjectName", "TagName", "Date", "Time"}
 	if err := w.Write(header); err != nil {
 		log.Println(err)
 		return
@@ -91,6 +91,7 @@ func (e *Export) export() {
 	for _, c := range chronoWorks {
 		record := []string{
 			strconv.Itoa(int(c.ID)),
+			c.Title,
 			c.ProjectType.Name,
 			c.Tag.Name,
 			c.CreatedAt.Format("2006/01/02"),
