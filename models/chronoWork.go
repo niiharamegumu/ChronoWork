@@ -16,6 +16,7 @@ type ChronoWork struct {
 	EndTime       time.Time `json:"end_time"`
 	IsTracking    bool      `json:"is_tracking"`
 	TotalSeconds  int       `json:"total_seconds"`
+	Confirmed     bool      `json:"confirmed"`
 
 	ProjectType ProjectType `gorm:"foreignkey:ProjectTypeID"`
 	Tag         Tag         `gorm:"foreignkey:TagID"`
@@ -91,6 +92,16 @@ func (c *ChronoWork) UpdateChronoWorkTotalSeconds(db *gorm.DB, totalSeconds int)
 	return nil
 }
 
+func (c *ChronoWork) ConfirmedChronoWork(db *gorm.DB, confirmed bool) error {
+	result := db.Model(c).Select("Confirmed").Updates(map[string]interface{}{
+		"confirmed": confirmed,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
 func GetChronoWorks(db *gorm.DB, orderField string, limit int) ([]ChronoWork, error) {
 	var chronoWorks []ChronoWork
 	query := db.Preload("ProjectType").Preload("Tag")
@@ -157,6 +168,7 @@ func CreateChronoWork(db *gorm.DB, title string, projectTypeID, tagID uint) (Chr
 		EndTime:       time.Time{},
 		IsTracking:    false,
 		TotalSeconds:  0,
+		Confirmed:     false,
 	}
 	result := db.Create(&chronoWork)
 	if result.Error != nil {

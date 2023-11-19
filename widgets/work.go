@@ -54,10 +54,10 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 		switch event.Key() {
 		case tcell.KeyRune:
 			switch event.Rune() {
-			case 't':
+			case 's':
 				// table top
 				w.goToTop()
-			case 'b':
+			case 'e':
 				// table bottom
 				w.goToBottom()
 			case 'a':
@@ -132,7 +132,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					})
 				tui.SetModal(modal)
 				tui.SetFocus("modal")
-			case 'c':
+			case 't':
 				// copy work title
 				row, _ := w.Table.GetSelection()
 				cell := w.Table.GetCell(row, 2)
@@ -146,6 +146,30 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					break
 				}
 				clipboard.Write(clipboard.FmtText, []byte(title))
+			case 'c':
+				// confirmed work
+				row, _ := w.Table.GetSelection()
+				cell := w.Table.GetCell(row, 0)
+				if cell.Text == "" {
+					break
+				}
+				id := cell.Text
+				if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
+					uintId := uint(intId)
+					chronoWork, err := models.FindChronoWork(db.DB, uintId)
+					if err != nil {
+						log.Println(err)
+						break
+					}
+					if chronoWork.Confirmed {
+						chronoWork.ConfirmedChronoWork(db.DB, false)
+					} else {
+						chronoWork.ConfirmedChronoWork(db.DB, true)
+					}
+					if err := w.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
+						log.Println(err)
+					}
+				}
 			}
 		case tcell.KeyEnter:
 			// toggle tracking
@@ -400,11 +424,15 @@ func (w *Work) goToBottom() {
 
 func (w *Work) configureTable(row int, chronoWork models.ChronoWork, setting models.Setting) {
 	// ID
+	confirmedColor := tcell.ColorGreen
+	if !chronoWork.Confirmed {
+		confirmedColor = tcell.ColorRed
+	}
 	w.Table.SetCell(row, 0,
 		tview.
 			NewTableCell(fmt.Sprintf("%d", chronoWork.ID)).
 			SetAlign(tview.AlignLeft).
-			SetExpansion(0))
+			SetExpansion(0).SetTextColor(confirmedColor))
 	// TotalTime
 	w.Table.SetCell(row, 1,
 		tview.
