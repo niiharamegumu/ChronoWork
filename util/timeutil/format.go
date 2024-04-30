@@ -48,3 +48,8 @@ func IsToday(t time.Time) bool {
 	now := time.Now()
 	return t.Year() == now.Year() && t.Month() == now.Month() && t.Day() == now.Day()
 }
+
+func SecondsToHourAndMinute(seconds int) string {
+	time := FormatTime(seconds)
+	return time[:5]
+}

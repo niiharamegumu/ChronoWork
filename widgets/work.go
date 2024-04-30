@@ -146,6 +146,28 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					break
 				}
 				clipboard.Write(clipboard.FmtText, []byte(title))
+			case 'h':
+				// copy hour and minute
+				row, _ := w.Table.GetSelection()
+				cell := w.Table.GetCell(row, 0)
+				if cell.Text == "" {
+					break
+				}
+				id := cell.Text
+				if intId, err := strconv.ParseUint(id, 10, 0); err == nil {
+					unitId := uint(intId)
+					chronoWork, err := models.FindChronoWork(db.DB, unitId)
+					if err != nil {
+						log.Println(err)
+						break
+					}
+					err = clipboard.Init()
+					if err != nil {
+						log.Println(err)
+						break
+					}
+					clipboard.Write(clipboard.FmtText, []byte(timeutil.SecondsToHourAndMinute(chronoWork.TotalSeconds)))
+				}
 			case 'c':
 				// confirmed work
 				row, _ := w.Table.GetSelection()
@@ -169,6 +191,7 @@ func (w *Work) TableCapture(tui *service.TUI, form *Form, timer *Timer) {
 					if err := w.ReStoreTable(timeutil.RelativeStartTime(), timeutil.TodayEndTime()); err != nil {
 						log.Println(err)
 					}
+					w.Table.Select(row, 0)
 				}
 			}
 		case tcell.KeyEnter:
